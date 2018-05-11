@@ -5,7 +5,7 @@ admin_password=$1
 windows_ip=$2
 org=$3
 
-vm_name_base="itcpWin-${org}"
+vm_name_base="vitcWin-${org}"
 vm_name=$(echo $vm_name_base | awk '{print substr($0,0,15)}')
 
 echo "Creating Windows VM"

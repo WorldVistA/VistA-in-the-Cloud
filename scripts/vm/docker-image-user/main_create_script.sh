@@ -248,6 +248,8 @@ fi
 win_vm_name_base="itcpWin-${group_name}"
 win_vm_name=$(echo $win_vm_name_base | awk '{print substr($0,0,15)}')
 
+./scripts/configure_windows.sh $linux_ip $group_name
+
 # storage_group_name="ITCP-Storage-Blobs"
 # AZURE_STORAGE_ACCOUNT="itcpstorageblobs"
 # container_name="itcp-scripts"
@@ -277,8 +279,10 @@ if [[ $enterprise ]]; then
     ./scripts/updateWindowsGroup.sh $vm_group_name $win_vm_name
 fi
 
-echo "Active Directory Username:"
-echo $org_username
+if [[ $enterprise ]]; then
+    echo "Active Directory Username:"
+    echo $org_username
+fi
 echo "Setup Summary:"
 if [[ -z $windows_password ]]; then
     echo "Your windows admin password is: " $win_password
