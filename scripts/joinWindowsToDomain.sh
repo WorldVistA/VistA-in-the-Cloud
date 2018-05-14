@@ -7,9 +7,9 @@ local_password=$4
 org=$5
 
 part1='{"commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -Command \"Add-Computer -DomainName osehravic.onmicrosoft.com -LocalCredential $(New-Object System.Management.Automation.PSCredential('"'"'osehra'"'"', $('"'"''
-part2=''"'"' | ConvertTo-SecureString -AsPlainText -Force))) -Credential $(New-Object System.Management.Automation.PSCredential('"'"'osehravic.onmicrosoft.com\\ITCPAdmin'"'"', $('"'"''
+part2=''"'"' | ConvertTo-SecureString -AsPlainText -Force))) -Credential $(New-Object System.Management.Automation.PSCredential('"'"'osehravic.onmicrosoft.com\\VITCAdmin'"'"', $('"'"''
 part3=''"'"' | ConvertTo-SecureString -AsPlainText -Force))) -OUPath '"'"'OU=Computers,OU='
-part4=',OU=ITCP-Machines,DC=osehravic,DC=onmicrosoft,DC=com'"'"' -Force\""}'
+part4=',OU=VITC-Machines,DC=osehravic,DC=onmicrosoft,DC=com'"'"' -Force\""}'
 psCommand=$part1$local_password$part2$ad_password$part3$org$part4
 
 echo "Joining Windows VM to Domain"

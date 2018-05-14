@@ -48,8 +48,6 @@ This step is fully automated. You need to ensure that if any clients are changed
 
 * You will be asked to supply the Active Directory password, the Organization AD (Active Directory) Username (Default: <group>.admin), First name (Default: Org), and Last name (Default: Admin).
 
-`scripts/vm/docker-image-user/create_windows_vm.sh`, `./scripts/vm/docker-image-user/provision_rhel_machine.json` and `./scripts/vm/docker-image-user/clientInstall.ps1` contain SAS URLs that will need to modified in case of change of scripts or clients.
-
 Once the script is complete, you can access either the Windows or Linux VM's using the Organization AD Username and the generated password, or your supplied password if `-p` was used.
 
 Logging into the Linux machine (the IP is displayed during provisioning) will give you an opportunity to interact with the Docker container. Port 9430 is the XWB Broker port; 8001 is VistALink; 2222 is an ssh into the Docker container; and 57772 is the Caché Portal.
@@ -60,7 +58,6 @@ Logging into the Windows machine (the IP is displayed during provisioning) will 
 
 This script will destroy all resources related to a specific organization
 
-* Run `cd ./scripts/vm/docker-image-user` to change into the required script directory.
 * Run `./main_destroy_script.sh -g <ORG-NAME>`. which has the following flags:
   * `-h | --help` Print help text
   * `-a | --ad-name` Name of the Domain Controller 1 VM
@@ -73,28 +70,24 @@ This script will destroy all resources related to a specific organization
 ENTERPRISE SETUP
 ----------------
 
-@TODO: Merge these into this repo and update to use VitC instead of ITCP.
-
 ## CREATE INFRASTRUCTURE SERVICES
 
 Depending on your setup, this is either fully automated, or broken up into automated scripts and a manual configuration step.
 
-The required scripts are housed in the [ITCP Infrastructure](https://github.com/OSEHRA/itcp-infrastructure/) repo.
+The required scripts are housed in the [templates](./templates).
 
 ### Manaul Configuration Requirements
 
 Once you have the Infrastructure setup, you will need do the following manual steps:
 * Remote Desktop to the Jumpbox
 * From the Jumpbox, Remote Desktop to Domain Controller 1
-* Create `C:\scripts`
-* Copy the contents of `./scripts/vm/docker-image-user/dc-scripts` into `C:\scripts`
 * From the `Server Manager` dashboard:
   * In the upper right hand coner click `Tools`
   * Select `Active Directory Users and Computers`
 * From `Active Directory Users and Computers`:
   * Right click on the domain
   * Choose `New` -> `Organizational Unit`
-  * Name: `ITCP-Machines`
+  * Name: `VITC-Machines`
   * Click `Ok`
 
 ## ADD CONSUMER MACHINES

@@ -1,6 +1,6 @@
 #!/bin/bash
 org=$1
-vm_name="itcpVistAUser-$org"
+vm_name="vitcVistAUser-$org"
 
 echo "Configuring Linux VM"
 echo "**Warning** This can take about 30 minutes"

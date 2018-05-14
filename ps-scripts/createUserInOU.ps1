@@ -13,4 +13,4 @@ Param(
 
 $userSecurePass = $userPass | ConvertTo-SecureString -AsPlainText -Force
 
-New-ADUser -Name "$username" -SamAccountName "$username" -GivenName "$firstName" -Surname "$lastName" -DisplayName "$firstName $lastName" -Enabled $true -AccountPassword $userSecurePass -Path "OU=Users,OU=$org,OU=ITCP-Machines,DC=osehravic,DC=onmicrosoft,DC=com"
+New-ADUser -Name "$username" -SamAccountName "$username" -GivenName "$firstName" -Surname "$lastName" -DisplayName "$firstName $lastName" -Enabled $true -AccountPassword $userSecurePass -Path "OU=Users,OU=$org,OU=VITC-Machines,DC=osehravic,DC=onmicrosoft,DC=com"

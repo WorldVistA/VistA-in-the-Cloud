@@ -1,0 +1,204 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "Common",
+      "metadata": {
+        "description": "Enter the name of the vnet you want to add the domain controllers to, ex: Common"
+      }
+    },
+    "vnetPrimarySubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24",
+      "metadata": {
+        "description": "Enter the primary subnet prefix you want to create, ex: 10.0.0.0/24."
+      }
+    },
+    "vnetSecondarySubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.1.0/24",
+      "metadata": {
+        "description": "Enter the secondary subnet prefix you want to create, ex: 10.0.1.0/24."
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "EnterpriseAdmin"
+    },
+    "adminPassword": {
+      "type": "securestring"
+    },
+    "domainName": {
+      "type": "string",
+      "defaultValue": "devnet.contoso.us"
+    },
+    "DCVmSize": {
+      "type": "string",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D5_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_D15_v2",
+        "Standard_DS1_v2",
+        "Standard_DS2_v2",
+        "Standard_DS3_v2",
+        "Standard_DS4_v2",
+        "Standard_DS5_v2",
+        "Standard_DS11_v2",
+        "Standard_DS12_v2",
+        "Standard_DS13_v2",
+        "Standard_DS14_v2",
+        "Standard_DS15_v2"
+      ],
+      "defaultValue": "Standard_D1_v2"
+    }
+  },
+  "variables": {
+    "storageAccountName": "[toLower(concat(replace(parameters('vnetName'), '-', ''), 'storage'))]",
+    "primarySubnetName": "[concat(parameters('vnetName'), '-Primary')]",
+    "secondarySubnetName": "[concat(parameters('vnetName'), '-Secondary')]",
+    "primarySubnetIPParts": "[split(split(parameters('vnetPrimarySubnetPrefix'), '/')[0], '.')]",
+    "dc1IP": "[concat( variables('primarySubnetIPParts')[0], '.', variables('primarySubnetIPParts')[1], '.', variables('primarySubnetIPParts')[2], '.4')]",
+    "jumpNICVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+    "ADSubnetRef": "[concat(variables('jumpNICVnetID'), '/subnets/', variables('primarySubnetName'))]",
+    "adPDCVMName": "[concat(substring(parameters('vnetName'), 0, 6), '-DC1')]",
+    "DCHASetName": "[concat(parameters('vnetName'), '-DCHASet')]",
+    "baseUri": "[deployment().properties.templateLink.uri]",
+    "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]",
+    "adPDCModulesURL": "[uri(variables('baseUri'),'DSC/CreateADPDC.ps1.zip')]",
+    "adPDCConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "apiVersion": "2016-01-01",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "Storage",
+      "properties": {}
+    },
+    {
+      "apiVersion": "2017-10-01",
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "name": "[concat(parameters('vnetName'), '/', variables('primarySubnetName'))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressPrefix": "[parameters('vnetPrimarySubnetPrefix')]"
+      }
+    },
+    {
+      "apiVersion": "2017-10-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), variables('primarySubnetName'))]"
+      ],
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "name": "[concat(parameters('vnetName'), '/', variables('secondarySubnetName'))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressPrefix": "[parameters('vnetSecondarySubnetPrefix')]"
+      }
+    },
+    {
+      "name": "[variables('DCHASetName')]",
+      "type": "Microsoft.Compute/availabilitySets",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-03-30",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "[concat(parameters('vnetName'), '-DCHASet')]"
+      },
+      "properties": {
+        "platformUpdateDomainCount": 2,
+        "platformFaultDomainCount": 2
+      },
+      "sku": {
+        "name": "Aligned"
+      }
+    },
+    {
+      "name": "DC1Deploy",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), variables('primarySubnetName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('windowsVmTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[variables('adPDCVMName')]"
+          },
+          "vmSize": {
+            "value": "[parameters('DCVmSize')]"
+          },
+          "subnetId": {
+            "value": "[variables('ADSubnetRef')]"
+          },
+          "fixedPrivateIp": {
+            "value": "[variables('dc1IP')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "diagStorageAccountId": {
+            "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          },
+          "availabilitySetId": {
+            "value": "[resourceId('Microsoft.Compute/availabilitySets', variables('DCHASetName'))]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('adPDCVMName'),'/CreateADForest')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'DC1Deploy')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.19",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "ModulesUrl": "[variables('adPDCModulesURL')]",
+          "ConfigurationFunction": "[variables('adPDCConfigurationFunction')]",
+          "Properties": {
+            "DomainName": "[parameters('domainName')]",
+            "AdminCreds": {
+              "UserName": "[parameters('adminUserName')]",
+              "Password": "PrivateSettingsRef:AdminPassword"
+            }
+          }
+        },
+        "protectedSettings": {
+          "Items": {
+            "AdminPassword": "[parameters('adminPassword')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {}
+}

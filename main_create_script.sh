@@ -2,16 +2,14 @@
 #
 # set -x
 
-# Each Organization needing to use ITCP needs a different resource group; so these have to be adjusted.
+# Each Organization needing to use VITC needs a different resource group; so these have to be adjusted.
 # Specify -g in order to change it to something else.
-export vm_group_name="ITCP-USR-OSEHRA"
+export vm_group_name="VITC-USR-OSEHRA"
 export vm_subnet_number="7"
-ad_vm_name="ITCP-C-DC1"
+ad_vm_name="VITC-C-DC1"
 dc_servers="10.1.1.4,10.1.1.5"
-common_vnet="ITCP-Common-RG-vnet"
-common_rg="ITCP-Common-RG"
-shared_vnet="itcpSHAREDVNET"
-shared_rg="ITCP-Common-RG"
+common_vnet="VITC-Common-RG-vnet"
+common_rg="VITC-Common-RG"
 ME=$(basename "$0")
 
 print_usage ()
@@ -77,14 +75,12 @@ while [[ $1 =~ ^- ]]; do
 done
 
 if [[ $group_name ]]; then
-    vm_group_name="ITCP-USR-${group_name}"
+    vm_group_name="VITC-USR-${group_name}"
 fi
 
 # The reset needs to stay constant
-export vnet_name="ITCP-USR-${group_name}-vnet"
-export subnet_name="ITCP-${group_name}-subnet"
-export storage_group_name="ITCP-Storage-Blobs"
-export storage_account_name="itcpstorageblobs"
+export vnet_name="VITC-USR-${group_name}-vnet"
+export subnet_name="VITC-${group_name}-subnet"
 
 # Get required user information
 win_password=""
@@ -193,13 +189,13 @@ if [[ $enterprise ]]; then
 
     common_vnet_id=$(az network vnet show --resource-group $common_rg  --name $common_vnet --query id --out tsv)
 
-    # Add peering to itcpSHAREDResources network to reach Vivian and CDash
+    # Add peering to vitcSHAREDResources network to reach Vivian and CDash
     echo "Peering Shared RG to Organization RG"
     az network vnet peering create -g $shared_rg     -n shared-to-consumer-${vm_group_name} --vnet-name $shared_vnet --remote-vnet-id $vnet_id        --allow-vnet-access > /dev/null
     echo "Peering Organization RG to Shared RG"
     az network vnet peering create -g $vm_group_name -n consumer-to-shared-${vm_group_name} --vnet-name $vnet_name   --remote-vnet-id $shared_vnet_id --allow-vnet-access > /dev/null
 
-    # Add peering to ITCP-Common-RG to reach AD
+    # Add peering to VITC-Common-RG to reach AD
     echo "Peering Common RG to Organization RG"
     az network vnet peering create -g $common_rg     -n common-to-consumer-${vm_group_name} --vnet-name $common_vnet --remote-vnet-id $vnet_id        --allow-vnet-access > /dev/null
     echo "Peering Organization RG to Common RG"
@@ -220,23 +216,19 @@ if [[ $enterprise ]]; then
     ./scripts/addUserToOU.sh $org_username $org_firstName $org_lastName $group_name $common_rg $ad_vm_name $win_password
 fi
 
-# Not required for enterprise/standard with all parts open source
-# # Tie storage to network
-# ./add_storage_network_rule.sh
-
 # Linux VM
 linux_ip=$(echo $(echo ${vnet_prefix}|cut -d . -f1-3)|awk '{print $1".4"}')
 ./create_vista_host.sh $linux_ip $group_name $win_password
 
 if [[ $enterprise ]]; then
     # Configure Linux VM SSH settings
-    ./scripts/ssh_config.sh $vm_group_name "itcpVistAUser-$group_name"
+    ./scripts/ssh_config.sh $vm_group_name "vitcVistAUser-$group_name"
 
     # Join Linux VM to Domain
-    ./scripts/joinLinuxToDomain.sh $vm_group_name "itcpVistAUser-$group_name" $ad_password $group_name
+    ./scripts/joinLinuxToDomain.sh $vm_group_name "vitcVistAUser-$group_name" $ad_password $group_name
 
     # Update Linux VM sssd config
-    ./scripts/sssd_config.sh $vm_group_name "itcpVistAUser-$group_name"
+    ./scripts/sssd_config.sh $vm_group_name "vitcVistAUser-$group_name"
 fi
 
 # Configure VistA Docker
@@ -245,31 +237,11 @@ fi
 # Create Windows VM
 ./create_windows_vm.sh $win_password $(echo $(echo ${vnet_prefix}|cut -d . -f1-3)|awk '{print $1".5"}') $group_name
 
-win_vm_name_base="itcpWin-${group_name}"
+win_vm_name_base="vitcWin-${group_name}"
 win_vm_name=$(echo $win_vm_name_base | awk '{print substr($0,0,15)}')
 
-./scripts/configure_windows.sh $linux_ip $group_name
-
-# storage_group_name="ITCP-Storage-Blobs"
-# AZURE_STORAGE_ACCOUNT="itcpstorageblobs"
-# container_name="itcp-scripts"
-# EXPIRE_DATE=$(date -v +5d +%Y-%m-%d)
-# NOW=$(date +%Y-%m-%dT%TZ)
-# AZURE_STORAGE_SAS_TOKEN=$(az storage account generate-sas --start $NOW --services b --resource-types o --permissions r --expiry $EXPIRE_DATE --account-name $AZURE_STORAGE_ACCOUNT --query "@" -otsv)
-
-# END_URL=$(az storage account show -g $storage_group_name -n $AZURE_STORAGE_ACCOUNT --query "primaryEndpoints.blob" -otsv)
-
-# FILE_URI=$END_URL$container_name/installPutty.ps1?$AZURE_STORAGE_SAS_TOKEN"&sr=b"
-
-# echo "Configuring Windows VM"
-# echo "**Warning** This can take about 15 minutes"
-# az vm extension set --publisher Microsoft.Compute --name CustomScriptExtension --version 1.8 --settings "{\"fileUris\": [\"$FILE_URI\"], \"commandToExecute\":\"powershell.exe -ExecutionPolicy Unrestricted -File .\\installPutty.ps1 $linux_ip \"}" --vm-name $win_vm_name --resource-group $vm_group_name > /dev/null
-# extension_id=$(az vm extension list -g $vm_group_name --vm-name $win_vm_name --query "[0].id" -otsv)
-# echo "Cleaning up Windows VM Extension"
-# az vm extension delete --ids $extension_id > /dev/null
-
 # Configure Windows VM to talk to VistA
-# ./scripts/configure_windows.sh $linux_ip $group_name
+./scripts/configure_windows.sh $linux_ip $group_name
 
 if [[ $enterprise ]]; then
     # Join Windows VM to Domain
@@ -289,7 +261,7 @@ if [[ -z $windows_password ]]; then
 fi
 echo "Linux VM Private IP:"
 echo $linux_ip
-vm_name=$(echo "itcpWin-${group_name}" | awk '{print substr($0,0,15)}')
+vm_name=$(echo "vitcWin-${group_name}" | awk '{print substr($0,0,15)}')
 ipaddr=$(az vm list-ip-addresses -g ${vm_group_name} -n "${vm_name}" --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -otsv)
 echo "Windows VM Public IP:"
 echo $ipaddr
