@@ -19,8 +19,8 @@ print_usage ()
     printf "  -a | --ad-name                        : Name of the Domain Controller 1 VM, Default: $ad_vm_name\n"
     printf "  -c | --common-vent <COMMON VNET NAME> : Name of the Common VNET where the Domain Controllers are located, Default: $common_vnet\n"
     printf "  -e | --enterprise                     : Flag to add a sandbox to an Enterprise setup\n"
-    printf "  -g | --group <GROUP NAME>             : Name of ResourceGroup (default: $vm_group_name), Default: $vm_group_name\n"
-    printf "  -e | --common-rg <COMMON RG NAME>     : Name of the Common Resource group where the Domain Controllers are located, Default: $common_rg\n"
+    printf "  -g | --group <GROUP NAME>             : Name of sandbox resource group (default: $vm_group_name), Default: $vm_group_name\n"
+    printf "  -r | --common-rg <COMMON RG NAME>     : Name of the Common Resource group where the Domain Controllers are located, Default: $common_rg\n"
     printf "\n\n"
 }
 
@@ -41,7 +41,7 @@ while [[ $1 =~ ^- ]]; do
         -g  | --group )                shift
                                        group_name=$1
                                        ;;
-        -n  | --common-rg )            shift
+        -r  | --common-rg )            shift
                                        common_rg=$1
                                        ;;
         * )                            echo "Unknown option $1"
@@ -50,6 +50,11 @@ while [[ $1 =~ ^- ]]; do
     esac
     shift
 done
+
+az cloud set --name AzureCloud
+if [ $(az account list &> /dev/null | grep -c id) -eq 0 ]; then
+    az login
+fi
 
 if [[ $group_name ]]; then
     vm_group_name="VITC-USR-${group_name}"

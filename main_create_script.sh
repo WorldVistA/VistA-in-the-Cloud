@@ -23,11 +23,9 @@ print_usage ()
     printf "  -c | --common-vent <COMMON VNET NAME> : Name of the Common VNET where the Domain Controllers are located, Default: $common_vnet\n"
     printf "  -d | --dc-servers <IP,ADDRESSES>      : Comma seperated list of the domain controller IP's, Default: $dc_servers\n"
     printf "  -e | --enterprise                     : Flag to add a sandbox to an Enterprise setup\n"
-    printf "  -g | --group <GROUP NAME>             : Name of ResourceGroup (default: $vm_group_name), Default: $vm_group_name\n"
-    printf "  -n | --common-rg <COMMON RG NAME>     : Name of the Common Resource group where the Domain Controllers are located, Default: $common_rg\n"
+    printf "  -g | --group <GROUP NAME>             : Name of organization to generate the Resource Group (No Spaces, replace with a dash `-`), Default: $vm_group_name\n"
     printf "  -p | --password                       : Option to enter a password for Active Directory User\n"
-    printf "  -s | --shared-vnet <SHARED VNET NAME> : Name of the Shared VNET Name, Default: $shared_vnet\n"
-    printf "  -r | --shared-rg <SHARED RG NAME>     : Name of the Shared Resource Group, Default $shared_rg\n"
+    printf "  -r | --common-rg <COMMON RG NAME>     : Name of the Common Resource group where the Domain Controllers are located, Default: $common_rg\n"
     printf "  -o | --octet <SECOND CIDR OCTET>      : Octet number under 10.X, Default: $vm_subnet_number\n"
     printf "\n\n"
 }
@@ -52,17 +50,11 @@ while [[ $1 =~ ^- ]]; do
         -g  | --group )                shift
                                        group_name=$1
                                        ;;
-        -n  | --common-rg )            shift
-                                       common_rg=$1
-                                       ;;
         -p  | --password )             shift
                                        windows_password=true
                                        ;;
-        -r  | --shared-rg )            shift
-                                       shared_rg=$1
-                                       ;;
-        -s  | --shared-vnet )          shift
-                                       shared_vnet=$1
+        -r  | --common-rg )            shift
+                                       common_rg=$1
                                        ;;
         -o  | --octet )                shift
                                        vm_subnet_number=$1
@@ -157,13 +149,12 @@ if [[ $enterprise ]]; then
     org_lastName="${org_lastName:-$org_lastName_default}"
 fi
 
-# Login and Create Resource Group
+# Login to AZ CLI
 az cloud set --name AzureCloud
-az account list &> /dev/null | grep login
-azloggedin=$?
-if [[ $azloggedin -eq 1 ]]; then
+if [ $(az account list &> /dev/null | grep -c id) -eq 0 ]; then
     az login
 fi
+
 echo "Creating Organization Resource Group"
 az group create --name $vm_group_name --location eastus > /dev/null
 
@@ -187,15 +178,7 @@ if [[ $enterprise ]]; then
     vnet_id=$(az network vnet show --resource-group $vm_group_name  --name $vnet_name --query id --out tsv)
 
     # Get the id for Common resources vnet.
-    shared_vnet_id=$(az network vnet show --resource-group $shared_rg  --name $shared_vnet --query id --out tsv)
-
     common_vnet_id=$(az network vnet show --resource-group $common_rg  --name $common_vnet --query id --out tsv)
-
-    # Add peering to vitcSHAREDResources network to reach Vivian and CDash
-    echo "Peering Shared RG to Organization RG"
-    az network vnet peering create -g $shared_rg     -n shared-to-consumer-${vm_group_name} --vnet-name $shared_vnet --remote-vnet-id $vnet_id        --allow-vnet-access > /dev/null
-    echo "Peering Organization RG to Shared RG"
-    az network vnet peering create -g $vm_group_name -n consumer-to-shared-${vm_group_name} --vnet-name $vnet_name   --remote-vnet-id $shared_vnet_id --allow-vnet-access > /dev/null
 
     # Add peering to VITC-Common-RG to reach AD
     echo "Peering Common RG to Organization RG"
@@ -253,11 +236,14 @@ if [[ $enterprise ]]; then
     ./scripts/updateWindowsGroup.sh $vm_group_name $win_vm_name
 fi
 
+echo "Setup Summary:"
 if [[ $enterprise ]]; then
     echo "Active Directory Username:"
     echo $org_username
+else
+    echo "Windows User:"
+    echo "osehra"
 fi
-echo "Setup Summary:"
 if [[ -z $windows_password ]]; then
     echo "Your windows admin password is: " $win_password
 fi

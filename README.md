@@ -33,17 +33,15 @@ INDIVIDUAL SETUP
 
 This step is fully automated. You need to ensure that if any clients are changed, all the SAS URLs are regenerated.
 
-* Run `cd ./scripts/vm/docker-image-user` to change into the required script directory.
-* Run `./main_create_script.sh -g <ORG-NAME>` which has the following flags:
+* Run `. ./main_create_script.sh -g <ORG-NAME>` which has the following flags:
   * `-h | --help` Print help text
   * `-a | --ad-name` Name of the Domain Controller 1 VM
   * `-c | --common-vent <COMMON VNET NAME>` Name of the Common VNET where the Domain Controllers are located
   * `-d | --dc-servers <IP,ADDRESSES>` Comma seperated list of the domain controller IP's
-  * `-e | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
-  * `-g | --group <GROUP NAME>` Name of Organization to generate the Resource Group (No Spaces, replace with a dash `-`
+  * `-e | --enterprise` Flag to add a sandbox to an Enterprise setup
+  * `-g | --group <GROUP NAME>` Name of organization to generate the Resource Group (No Spaces, replace with a dash `-`)
   * `-p | --password` Option to enter a password for Active Directory User
-  * `-r | --shared-rg <SHARED RG NAME>` Name of the Shared Resource Group
-  * `-s | --shared-vnet <SHARED VNET NAME>` Name of the Shared VNET Name
+  * `-r | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
   * `-o | --octet <SECOND CIDR OCTET>` Octet number under 10.
 
 * You will be asked to supply the Active Directory password, the Organization AD (Active Directory) Username (Default: <group>.admin), First name (Default: Org), and Last name (Default: Admin).
@@ -58,14 +56,13 @@ Logging into the Windows machine (the IP is displayed during provisioning) will 
 
 This script will destroy all resources related to a specific organization
 
-* Run `./main_destroy_script.sh -g <ORG-NAME>`. which has the following flags:
+* Run `. ./main_destroy_script.sh -g <ORG-NAME>`. which has the following flags:
   * `-h | --help` Print help text
   * `-a | --ad-name` Name of the Domain Controller 1 VM
   * `-c | --common-vent <COMMON VNET NAME>` Name of the Common VNET where the Domain Controllers are located
-  * `-e | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
-  * `-g | --group <GROUP NAME>` Name of ResourceGroup (default: $vm_group_name)
-  * `-s | --shared-vnet <SHARED VNET NAME>` Name of the Shared VNET Name
-  * `-r | --shared-rg <SHARED RG NAME>` Name of the Shared Resource Group
+  * `-e | --enterprise` Flag to add a sandbox to an Enterprise setup
+  * `-g | --group <GROUP NAME>` Name of organization resource group
+  * `-r | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
 
 ENTERPRISE SETUP
 ----------------
