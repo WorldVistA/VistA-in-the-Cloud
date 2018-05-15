@@ -4,7 +4,7 @@
   "parameters": {
     "adminUsername": {
       "type": "string",
-      "defaultValue": "EnterpriseAdmin"
+      "defaultValue": "VITCAdmin"
     },
     "adminPassword": {
       "type": "securestring"
@@ -12,6 +12,31 @@
     "domainName": {
       "type": "string",
       "defaultValue": "devnet.contoso.us"
+    },
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "VITC-Common"
+    },
+    "vnetCIDR": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/16",
+      "metadata": {
+        "description": "Enter the VNET CIDR you want to create, ex: 10.0.0.0/16."
+      }
+    },
+    "vnetPrimarySubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24",
+      "metadata": {
+        "description": "Enter the primary subnet prefix you want to create, ex: 10.0.0.0/24."
+      }
+    },
+    "vnetSecondarySubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.1.0/24",
+      "metadata": {
+        "description": "Enter the secondary subnet prefix you want to create, ex: 10.0.1.0/24."
+      }
     },
     "jumpBoxVmSize": {
       "type": "string",
@@ -68,15 +93,11 @@
   },
   "variables": {
     "diagStorageAccountName": "[concat(uniquestring(resourceGroup().id), 'vmdiag')]",
-    "coreVnetName": "corevnet",
-    "corevnetPrefix": "10.0.0.0/16",
-    "corevnetDCSubnetName": "Subnet-1",
-    "corevnetDCSubnetPrefix": "10.0.0.0/24",
-    "corevnetDevOpsSubnetName": "Subnet-2",
-    "corevnetDevOpsSubnetPrefix": "10.0.1.0/24",
-    "jumpNICVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('coreVnetName'))]",
-    "jumpNICSubnetRef": "[concat(variables('jumpNICVnetID'), '/subnets/', variables('corevnetDevOpsSubnetName'))]",
-    "ADSubnetRef": "[concat(variables('jumpNICVnetID'), '/subnets/', variables('corevnetDCSubnetName'))]",
+    "primarySubnetName": "[concat(parameters('vnetName'), '-Primary')]",
+    "secondarySubnetName": "[concat(parameters('vnetName'), '-Secondary')]",
+    "jumpNICVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+    "jumpNICSubnetRef": "[concat(variables('jumpNICVnetID'), '/subnets/', variables('secondarySubnetName'))]",
+    "ADSubnetRef": "[concat(variables('jumpNICVnetID'), '/subnets/', variables('primarySubnetName'))]",
     "jumpVMName": "JumpBox",
     "adPDCVMName": "DC1",
     "adBDCVMName": "DC2",
@@ -102,7 +123,7 @@
       "properties": {}
     },
     {
-      "name": "[variables('coreVnetName')]",
+      "name": "[parameters('vnetName')]",
       "type": "Microsoft.Network/virtualNetworks",
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-03-30",
@@ -110,20 +131,20 @@
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "[variables('corevnetPrefix')]"
+            "[parameters('vnetCIDR')]"
           ]
         },
         "subnets": [
           {
-            "name": "[variables('corevnetDCSubnetName')]",
+            "name": "[variables('primarySubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('corevnetDCSubnetPrefix')]"
+              "addressPrefix": "[parameters('vnetPrimarySubnetPrefix')]"
             }
           },
           {
-            "name": "[variables('corevnetDevOpsSubnetName')]",
+            "name": "[variables('secondarySubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('corevnetDevOpsSubnetPrefix')]"
+              "addressPrefix": "[parameters('vnetSecondarySubnetPrefix')]"
             }
           }
         ]
@@ -151,7 +172,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('coreVnetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccountName'))]"
       ],
       "properties": {
@@ -193,9 +214,9 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('coreVnetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccountName'))]",
-        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"        
+        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -236,9 +257,9 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('coreVnetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorageAccountName'))]",
-        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"        
+        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -252,7 +273,7 @@
           },
           "vmSize": {
             "value": "[parameters('jumpBoxVmSize')]"
-          },          
+          },
           "subnetId": {
             "value": "[variables('jumpNICSubnetRef')]"
           },
@@ -309,7 +330,7 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'DC2Deploy')]",
-        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"                
+        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"
       ],
       "properties": {
         "publisher": "Microsoft.Powershell",
@@ -374,7 +395,7 @@
         },
         "parameters": {
           "vnetName": {
-            "value": "[variables('coreVnetName')]"
+            "value": "[parameters('vnetName')]"
           },
           "dnsServers": {
             "value": [
@@ -383,10 +404,10 @@
             ]
           },
           "addressSpace": {
-            "value": "[reference(concat('Microsoft.Network/virtualNetworks/', variables('coreVnetName'))).addressSpace]"
+            "value": "[reference(concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))).addressSpace]"
           },
           "subnets": {
-            "value": "[reference(concat('Microsoft.Network/virtualNetworks/', variables('coreVnetName'))).subnets]"
+            "value": "[reference(concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))).subnets]"
           }
         }
       }

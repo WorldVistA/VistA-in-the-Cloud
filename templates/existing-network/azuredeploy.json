@@ -4,9 +4,9 @@
   "parameters": {
     "vnetName": {
       "type": "string",
-      "defaultValue": "Common",
+      "defaultValue": "VITC-Common",
       "metadata": {
-        "description": "Enter the name of the vnet you want to add the domain controllers to, ex: Common"
+        "description": "Enter the name of the vnet you want to add the domain controllers to, ex: VITC-Common"
       }
     },
     "vnetPrimarySubnetPrefix": {
@@ -25,7 +25,10 @@
     },
     "adminUsername": {
       "type": "string",
-      "defaultValue": "EnterpriseAdmin"
+      "defaultValue": "VITCAdmin",
+      "metadata": {
+        "description": "Admin User for Domain, Domain Controllers, and JumpBox"
+      }
     },
     "adminPassword": {
       "type": "securestring"

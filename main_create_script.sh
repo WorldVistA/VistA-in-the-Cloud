@@ -218,7 +218,7 @@ fi
 
 # Linux VM
 linux_ip=$(echo $(echo ${vnet_prefix}|cut -d . -f1-3)|awk '{print $1".4"}')
-./create_vista_host.sh $linux_ip $group_name $win_password
+./scripts/create_vista_host.sh $linux_ip $group_name $win_password
 
 if [[ $enterprise ]]; then
     # Configure Linux VM SSH settings
@@ -235,7 +235,7 @@ fi
 ./scripts/docker_config.sh $group_name
 
 # Create Windows VM
-./create_windows_vm.sh $win_password $(echo $(echo ${vnet_prefix}|cut -d . -f1-3)|awk '{print $1".5"}') $group_name
+./scripts/create_windows_vm.sh $win_password $(echo $(echo ${vnet_prefix}|cut -d . -f1-3)|awk '{print $1".5"}') $group_name
 
 win_vm_name_base="vitcWin-${group_name}"
 win_vm_name=$(echo $win_vm_name_base | awk '{print substr($0,0,15)}')
