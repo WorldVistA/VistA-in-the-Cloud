@@ -159,7 +159,9 @@ fi
 
 # Login and Create Resource Group
 az cloud set --name AzureCloud
-if [[ $(az account list | grep login) ]]; then
+az account list &> /dev/null | grep login
+azloggedin=$?
+if [[ $azloggedin -eq 1 ]]; then
     az login
 fi
 echo "Creating Organization Resource Group"
