@@ -134,6 +134,18 @@
           },
           "diagStorageAccountId": {
             "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          },
+          "assignPublicIP": {
+            "value": true
+          },
+          "imagePublisher": {
+            "value": "MicrosoftWindows"
+          },
+          "imageOffer": {
+            "value": "Windows 10 Pro"
+          },
+          "imageSku": {
+            "value": "Version 1709"
           }
         }
       }
