@@ -31,6 +31,8 @@ INDIVIDUAL SETUP
 
 ## CREATE CONSUMER VIRTUAL MACHINES
 
+### Azure CLI Command
+
 This step is fully automated. You need to ensure that if any clients are changed, all the SAS URLs are regenerated.
 
 * Run `. ./main_create_script.sh -g <ORG-NAME>` which has the following flags:
@@ -51,6 +53,12 @@ Once the script is complete, you can access either the Windows or Linux VM's usi
 Logging into the Linux machine (the IP is displayed during provisioning) will give you an opportunity to interact with the Docker container. Port 9430 is the XWB Broker port; 8001 is VistALink; 2222 is an ssh into the Docker container; and 57772 is the Caché Portal.
 
 Logging into the Windows machine (the IP is displayed during provisioning) will give you a desktop with all the VistA clients. You will be able to log-in into VistA using CPRS.
+
+### Azure Template
+
+<a href="https://transmogrify.azurewebsites.net/templates/sandbox/azuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
 
 ## DESTROY CONSUMER VIRTUAL MACHINES
 
