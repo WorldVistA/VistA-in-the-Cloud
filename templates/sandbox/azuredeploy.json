@@ -139,13 +139,13 @@
             "value": true
           },
           "imagePublisher": {
-            "value": "MicrosoftWindows"
+            "value": "MicrosoftWindowsDesktop"
           },
           "imageOffer": {
-            "value": "Windows 10 Pro"
+            "value": "Windows-10"
           },
           "imageSku": {
-            "value": "Version 1709"
+            "value": "RS3-Pro"
           }
         }
       }
