@@ -156,13 +156,13 @@
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "config-app",
+      "name": "config-win",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-          "[concat('Microsoft.Compute/virtualMachines/', variables('winVMName') ,copyindex())]"
+        "[resourceId('Microsoft.Resources/deployments', variables('winVMName'))]"
       ],
       "tags": {
-          "displayName": "config-app"
+          "displayName": "config-win"
       },
       "properties": {
           "publisher": "Microsoft.Compute",
@@ -175,7 +175,7 @@
               ]
           },
           "protectedSettings": {
-              "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 [variables('linuxIP)]"
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 ',variables('linuxIP'))]"
           }
       }
   }
