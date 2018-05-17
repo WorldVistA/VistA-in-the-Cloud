@@ -45,7 +45,7 @@ There is one processes required for establishing a working VitC sandbox, as foll
 
 # SOFTWARE NEEDED
 
-## Azure CLI Scripts
+## Azure Scripts
 In order to deploy this sandbox, first install the Azure Command-line Interface (CLI) (https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest). These scripts have been validated for Linux, Windows and MacOS. This step can be done on any laptop from which you can access Azure, if you have local Admin rights.
 
 ## Azure Templates
