@@ -1,41 +1,45 @@
-INTRODUCTION
-------------
+# INTRODUCTION
+
 The VistA in the Cloud (VitC) environment is a sandbox where third parties - external to VA and OSEHRA - can test their software against a VistA instance operating in a production-like environment with synthetic patients.
 Each  VitC sandbox environment will contain:
    * a copy of the VistA Windows clients
    * a copy of VistA on a virtual Linux box
    * Links on the Windows VM desktop for visualizing VistA and a dashboard for dox/tests
 
-Presented here is an outline for establishing an VitC sandbox. There are many areas that need further polishing.
+Presented here is an outline for establishing a VitC sandbox. There are many areas that need further polishing.
 
-PROCESS OUTLINE
----------------
+# PROCESS OUTLINE
+
 There is one processes required for establishing a working VitC sandbox, as follow:
 
- - Create a consumer pair of VMs in a resource group unique to the participating organization:
-  * A Windows VM to host the VistA clients;
-  * A Linux VM to host the Docker image containing OSEHRA VistA. The resources are key protected (Linux) or password protected (Windows).
+  * Create a consumer pair of VMs in a resource group unique to the participating organization:
+  * A Windows VM to host the VistA clients.
+  * A Linux VM to host the Docker image containing OSEHRA VistA.
+  * The resources are key protected (Linux) or password protected (Windows).
 
-SOFTWARE NEEDED
----------------
+# SOFTWARE NEEDED
+
+## Azure CLI Scripts
 In order to deploy this sandbox, first install the Azure Command-line Interface (CLI) (https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest). These scripts have been validated for Linux, Windows and MacOS. This step can be done on any laptop from which you can access Azure, if you have local Admin rights.
 
-AZURE ACCOUNT ACCESS NEEDED
----------------------------
+## Azure Templates
+None
+
+# AZURE ACCOUNT ACCESS NEEDED
+
 The consumer services requires access to the Azure Commercial Cloud (https://portal.azure.us).
 
 Once an account is established, logging in is included as a part of each of the scripts described below.
 
-INDIVIDUAL SETUP
-----------------
+# INDIVIDUAL SETUP
 
 ## CREATE CONSUMER VIRTUAL MACHINES
 
-### Azure CLI Command
+### Azure CLI Scripts
 
-This step is fully automated. You need to ensure that if any clients are changed, all the SAS URLs are regenerated.
+The script is fully automated.  The only required flag is `-g`, if you are building an enterprise setup you will also need: `-c, -e, and -r`.
 
-* Run `. ./main_create_script.sh -g <ORG-NAME>` which has the following flags:
+  * Run `. ./main_create_script.sh -g <ORG-NAME>` which has the following flags:
   * `-h | --help` Print help text
   * `-a | --ad-name` Name of the Domain Controller 1 VM
   * `-c | --common-vent <COMMON VNET NAME>` Name of the Common VNET where the Domain Controllers are located
@@ -46,13 +50,18 @@ This step is fully automated. You need to ensure that if any clients are changed
   * `-r | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
   * `-o | --octet <SECOND CIDR OCTET>` Octet number under 10.
 
-* You will be asked to supply the Active Directory password, the Organization AD (Active Directory) Username (Default: <group>.admin), First name (Default: Org), and Last name (Default: Admin).
-
-Once the script is complete, you can access either the Windows or Linux VM's using the Organization AD Username and the generated password, or your supplied password if `-p` was used.
+Once the script is complete, you can access the Windows VM's using the following credentials:
+  * `username` osehra
+  * `password` The generated password or self supplied password if `-p` was used.
 
 Logging into the Linux machine (the IP is displayed during provisioning) will give you an opportunity to interact with the Docker container. Port 9430 is the XWB Broker port; 8001 is VistALink; 2222 is an ssh into the Docker container; and 57772 is the Caché Portal.
 
 Logging into the Windows machine (the IP is displayed during provisioning) will give you a desktop with all the VistA clients. You will be able to log-in into VistA using CPRS.
+
+#### Enterprise Notes
+
+  * You will be asked to supply the Active Directory password, the Organization AD (Active Directory) Username (Default: <group>.admin), First name (Default: Org), and Last name (Default: Admin).
+  * Once the script is complete you can login with the AD Username and AD User Password
 
 ### Azure Template
 
@@ -74,8 +83,7 @@ This script will destroy all resources related to a specific organization
   * `-g | --group <GROUP NAME>` Name of organization resource group
   * `-r | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
 
-ENTERPRISE SETUP
-----------------
+# ENTERPRISE SETUP
 
 ## CREATE INFRASTRUCTURE SERVICES
 
