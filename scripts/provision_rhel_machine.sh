@@ -6,7 +6,7 @@ yum install -y yum-utils device-mapper-persistent-data lvm2 git
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum install -y docker-ce
 mkdir -p /mnt/resource/docker /etc/docker
-echo '{\"data-root\": \"/mnt/resource/docker\"}' > /etc/docker/daemon.json
+echo '{"data-root": "/mnt/resource/docker"}' > /etc/docker/daemon.json
 systemctl start docker
 cd /mnt/resource
 docker pull osehra/osehravista
