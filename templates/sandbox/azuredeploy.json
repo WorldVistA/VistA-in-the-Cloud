@@ -66,7 +66,9 @@
     "baseUri": "[deployment().properties.templateLink.uri]",
     "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]",
     "windowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/configureWindows.ps1')]",
-    "winVMName": "VITCWinSandbox"
+    "linuxVmScriptURL": "[uri(variables('baseUri'),'../../scripts/provision_rhel_machine.sh')]",
+    "winVMName": "VITCWinSandbox",
+    "linuxVMName": "VITCLinuxSandbox"
   },
   "resources": [
     {
@@ -103,7 +105,7 @@
       }
     },
     {
-      "name": "VITCWinSandbox",
+      "name": "[variables('winVMName')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
@@ -156,29 +158,106 @@
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "VITCWinSandbox/config",
+      "name": "[concat(variables('winVMName'), '/config')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', variables('winVMName'))]"
       ],
       "tags": {
-          "displayName": "config-win"
+        "displayName": "config-win"
       },
       "properties": {
-          "publisher": "Microsoft.Compute",
-          "type": "CustomScriptExtension",
-          "typeHandlerVersion": "1.9",
-          "autoUpgradeMinorVersion": true,
-          "settings": {
-              "fileUris": [
-                  "[variables('windowsVmScriptURL')]"
-              ]
-          },
-          "protectedSettings": {
-              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 ',variables('linuxIP'))]"
-          }
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.9",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('windowsVmScriptURL')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 ',variables('linuxIP'))]"
+        }
       }
-  }
+    },
+    {
+      "name": "[variables('linuxVMName')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('windowsVmTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[variables('linuxVMName')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetRef')]"
+          },
+          "fixedPrivateIp": {
+            "value": "[variables('linuxIP')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "diagStorageAccountId": {
+            "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          },
+          "assignPublicIP": {
+            "value": true
+          },
+          "imagePublisher": {
+            "value": "OpenLogic"
+          },
+          "imageOffer": {
+            "value": "CentOS"
+          },
+          "imageSku": {
+            "value": "7.3"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('linuxVMName'), '/config')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', variables('linuxVMName'))]"
+      ],
+      "tags": {
+        "displayName": "config-linux"
+      },
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.9",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('linuxVmScriptURL')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "provision_rhel_machine.sh"
+        }
+      }
+    }
   ],
   "outputs": {}
 }
