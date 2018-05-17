@@ -50,7 +50,7 @@
         "Standard_DS14_v2",
         "Standard_DS15_v2"
       ],
-      "defaultValue": "Standard_D1_v2"
+      "defaultValue": "Standard_D3_v2"
     }
   },
   "variables": {
@@ -61,9 +61,12 @@
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
     "subnetRef": "[concat(variables('vnetID'), '/subnets/', variables('primarySubnetName'))]",
     "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
+    "linuxIP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.4')]",
     "winIP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.5')]",
     "baseUri": "[deployment().properties.templateLink.uri]",
-    "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]"
+    "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]",
+    "windowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/configureWindows.ps1')]",
+    "winVMName": "VITCWinSandbox"
   },
   "resources": [
     {
@@ -100,7 +103,7 @@
       }
     },
     {
-      "name": "DC1Deploy",
+      "name": "VITCWinSandbox",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
@@ -115,7 +118,7 @@
         },
         "parameters": {
           "vmName": {
-            "value": "vitcWin"
+            "value": "[variables('winVMName')]"
           },
           "vmSize": {
             "value": "[parameters('vmSize')]"
@@ -149,7 +152,33 @@
           }
         }
       }
-    }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "config-app",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+          "[concat('Microsoft.Compute/virtualMachines/', variables('winVMName') ,copyindex())]"
+      ],
+      "tags": {
+          "displayName": "config-app"
+      },
+      "properties": {
+          "publisher": "Microsoft.Compute",
+          "type": "CustomScriptExtension",
+          "typeHandlerVersion": "1.9",
+          "autoUpgradeMinorVersion": true,
+          "settings": {
+              "fileUris": [
+                  "[variables('windowsVmScriptURL')]"
+              ]
+          },
+          "protectedSettings": {
+              "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 [variables('linuxIP)]"
+          }
+      }
+  }
   ],
   "outputs": {}
 }

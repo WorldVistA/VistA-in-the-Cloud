@@ -1,4 +1,7 @@
-$serverAddress = $args[0]
+param (
+  [Parameter(Mandatory)]
+  [String]$serverAddress
+)
 
 $ErrorActionPreference = "SilentlyContinue"
 
