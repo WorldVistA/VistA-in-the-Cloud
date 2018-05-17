@@ -1,9 +1,35 @@
+# Table of Contents
+
+<!--ts-->
+  * [Table of contents](#table-of-contents)
+  * [Introduction](#introduction)
+  * [Process Outline](#process-outline)
+  * [Software Needed](#software-needed)
+    * [Azure Scripts](#azure-scripts)
+    * [Azure Templates](#azure-templates)
+  * [AZURE ACCOUNT ACCESS NEEDED](#azure-account-access-needed)
+  * [INDIVIDUAL SETUP](#individual-setup)
+    * [CREATE CONSUMER VIRTUAL MACHINES](#create-consumer-virtual-machines)
+      * [Azure CLI Scripts](#azure-cli-scripts)
+        * [Enterprise Notes](#enterprise-notes)
+      * [Azure Template](#azure-template)
+    * [DESTROY CONSUMER VIRTUAL MACHINES](#destroy-consumer-virtual-machines)
+      * [Azure CLI](#azure-cli)
+      * [Azure Portal](#azure-portal)
+  * [ENTERPRISE SETUP](#enterprise-setup)
+    * [CREATE INFRASTRUCTURE SERVICES](#create-infrastructure-services)
+    * [ADD CONSUMER MACHINES](#add-consumer-machines)
+      * [New VNET Setup](#new-vnet-setup)
+      * [Existing VNET Setup](#existing-vnet-setup)
+    * [DESTROY CONSUMER MACHINES](#destroy-consumer-machines)
+<!--te-->
+
 # INTRODUCTION
 
 The VistA in the Cloud (VitC) environment is a sandbox where third parties - external to VA and OSEHRA - can test their software against a VistA instance operating in a production-like environment with synthetic patients.
 Each  VitC sandbox environment will contain:
-   * a copy of the VistA Windows clients
-   * a copy of VistA on a virtual Linux box
+   * A copy of the VistA Windows clients
+   * A copy of VistA on a virtual Linux box
    * Links on the Windows VM desktop for visualizing VistA and a dashboard for dox/tests
 
 Presented here is an outline for establishing a VitC sandbox. There are many areas that need further polishing.
@@ -13,9 +39,9 @@ Presented here is an outline for establishing a VitC sandbox. There are many are
 There is one processes required for establishing a working VitC sandbox, as follow:
 
   * Create a consumer pair of VMs in a resource group unique to the participating organization:
-  * A Windows VM to host the VistA clients.
-  * A Linux VM to host the Docker image containing OSEHRA VistA.
-  * The resources are key protected (Linux) or password protected (Windows).
+    * A Windows VM to host the VistA clients.
+    * A Linux VM to host the Docker image containing OSEHRA VistA.
+    * The resources are key protected (Linux) or password protected (Windows).
 
 # SOFTWARE NEEDED
 
@@ -73,6 +99,8 @@ Logging into the Windows machine (the IP is displayed during provisioning) will 
 
 ## DESTROY CONSUMER VIRTUAL MACHINES
 
+### Azure CLI
+
 This script will destroy all resources related to a specific organization
 
 * Run `. ./main_destroy_script.sh -g <ORG-NAME>`. which has the following flags:
@@ -82,6 +110,10 @@ This script will destroy all resources related to a specific organization
   * `-e | --enterprise` Flag to add a sandbox to an Enterprise setup
   * `-g | --group <GROUP NAME>` Name of organization resource group
   * `-r | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
+
+### Azure Portal
+
+* Remove resource group, Default: `VITC-Sandbox`, and all resources will be deleted.
 
 # ENTERPRISE SETUP
 
