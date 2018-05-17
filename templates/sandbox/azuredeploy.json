@@ -251,7 +251,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "provision_rhel_machine.sh"
+          "commandToExecute": "./provision_rhel_machine.sh"
         }
       }
     }
