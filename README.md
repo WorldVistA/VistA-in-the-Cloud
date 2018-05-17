@@ -56,6 +56,8 @@ Logging into the Windows machine (the IP is displayed during provisioning) will 
 
 ### Azure Template
 
+**Required Information:** If you are running more than 1 sandbox, or have a Virtual Network that includes 10.7.0.0/24, you will need to find a new CIDR to deploy the sandbox into.  If you only have additional sandboxes you can increment the third octet by 1, i.e. 10.7.1.0/24.
+
 <a href="https://transmogrify.azurewebsites.net/templates/sandbox/azuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
