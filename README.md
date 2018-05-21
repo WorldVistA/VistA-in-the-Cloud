@@ -3,28 +3,27 @@
 <!--ts-->
   * [Table of contents](#table-of-contents)
   * [Introduction](#introduction)
-  * [Process Outline](#process-outline)
+  * [Azure Account Access Needed](#azure-account-access-needed)
+  * [Azure Portal](#azure-portal)
+    * [Sandbox Creation](#sandbox-creation)
+      * [Sandbox Configuration](#sandbox-configuration)
+    * [Sandbox Deletion](#sandbox-deletion)
+  * [Azure CLI](#azure-cli)
+    * [Create Consumer Virtual Machines](#create-consumer-virtual-machines)
+      * [Enterprise Notes](#enterprise-notes)
+    * [Destroy Consumer Virtual Machines](#destroy-consumer-virtual-machines)
   * [Software Needed](#software-needed)
     * [Azure Scripts](#azure-scripts)
     * [Azure Templates](#azure-templates)
-  * [AZURE ACCOUNT ACCESS NEEDED](#azure-account-access-needed)
-  * [INDIVIDUAL SETUP](#individual-setup)
-    * [CREATE CONSUMER VIRTUAL MACHINES](#create-consumer-virtual-machines)
-      * [Azure CLI Scripts](#azure-cli-scripts)
-        * [Enterprise Notes](#enterprise-notes)
-      * [Azure Template](#azure-template)
-    * [DESTROY CONSUMER VIRTUAL MACHINES](#destroy-consumer-virtual-machines)
-      * [Azure CLI](#azure-cli)
-      * [Azure Portal](#azure-portal)
-  * [ENTERPRISE SETUP](#enterprise-setup)
-    * [CREATE INFRASTRUCTURE SERVICES](#create-infrastructure-services)
-    * [ADD CONSUMER MACHINES](#add-consumer-machines)
+  * [Enterprise Setup](#enterprise-setup)
+    * [Create Infrastructure Services](#create-infrastructure-services)
+    * [Add Consumer Machines](#add-consumer-machines)
       * [New VNET Setup](#new-vnet-setup)
       * [Existing VNET Setup](#existing-vnet-setup)
-    * [DESTROY CONSUMER MACHINES](#destroy-consumer-machines)
+    * [Destroy Consumer Machines](#destroy-consumer-machines)
 <!--te-->
 
-# INTRODUCTION
+# Introduction
 
 The VistA in the Cloud (VitC) environment is a sandbox where third parties - external to VA and OSEHRA - can test their software against a VistA instance operating in a production-like environment with synthetic patients.
 Each  VitC sandbox environment will contain:
@@ -34,34 +33,40 @@ Each  VitC sandbox environment will contain:
 
 Presented here is an outline for establishing a VitC sandbox. There are many areas that need further polishing.
 
-# PROCESS OUTLINE
-
-There is one processes required for establishing a working VitC sandbox, as follow:
-
-  * Create a consumer pair of VMs in a resource group unique to the participating organization:
-    * A Windows VM to host the VistA clients.
-    * A Linux VM to host the Docker image containing OSEHRA VistA.
-    * The resources are key protected (Linux) or password protected (Windows).
-
-# SOFTWARE NEEDED
-
-## Azure Scripts
-In order to deploy this sandbox, first install the Azure Command-line Interface (CLI) (https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest). These scripts have been validated for Linux, Windows and MacOS. This step can be done on any laptop from which you can access Azure, if you have local Admin rights.
-
-## Azure Templates
-None
-
-# AZURE ACCOUNT ACCESS NEEDED
+# Azure Account Access Needed
 
 The consumer services requires access to the Azure Commercial Cloud (https://portal.azure.us).
 
 Once an account is established, logging in is included as a part of each of the scripts described below.
 
-# INDIVIDUAL SETUP
+# Azure Portal
 
-## CREATE CONSUMER VIRTUAL MACHINES
+## Sanbox Creation
 
-### Azure CLI Scripts
+<a href="https://transmogrify.azurewebsites.net/templates/sandbox/azuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+
+### Sandbox Configuration
+
+Required Fields:
+  * `vnetName` Default: `VITC-Sandbox`
+  * `vnetCIDR` Default: `10.7.0.0/24`
+    * If you are running more than 1 sandbox, or have a Virtual Network that includes 10.7.0.0/24, you will need to find a new CIDR to deploy the sandbox into.  If you only have additional sandboxes you can increment the third octet by 1, i.e. 10.7.1.0/24.
+  * `adminUsername` Default: `VITCAdmin`
+  * `adminPassword` Default: `NULL`
+
+You must either create a new resource group, or add the sandbox to an existing one, then choose an admin password that you can access the Windows VM with.
+
+Once the Sandbox is created you can access it via RDP using the `adminUsername` and `adminPassword`.  You will have to get the Windows VM public IP address from your resource group.
+
+## Sandbox Deletion
+
+* Remove resource group, Default: `VITC-Sandbox`, and all resources will be deleted.
+
+# Azure CLI
+
+## Create Consumer Virtual Machines
 
 The script is fully automated.  The only required flag is `-g`, if you are building an enterprise setup you will also need: `-c, -e, and -r`.
 
@@ -80,26 +85,16 @@ Once the script is complete, you can access the Windows VM's using the following
   * `username` osehra
   * `password` The generated password or self supplied password if `-p` was used.
 
-Logging into the Linux machine (the IP is displayed during provisioning) will give you an opportunity to interact with the Docker container. Port 9430 is the XWB Broker port; 8001 is VistALink; 2222 is an ssh into the Docker container; and 57772 is the Caché Portal.
+Logging into the Linux machine can be done via PuTTY links on the Windows VM desktop.  It will give you an opportunity to interact with the Docker container. Port 9430 is the XWB Broker port; 8001 is VistALink; 2222 is an ssh into the Docker container; and 57772 is the Caché Portal.
 
-Logging into the Windows machine (the IP is displayed during provisioning) will give you a desktop with all the VistA clients. You will be able to log-in into VistA using CPRS.
+Logging into the Windows machine (the admin username and IP is displayed during provisioning) will give you a desktop with all the VistA clients. You will be able to log-in into VistA using CPRS.
 
-#### Enterprise Notes
+### Enterprise Notes
 
   * You will be asked to supply the Active Directory password, the Organization AD (Active Directory) Username (Default: <group>.admin), First name (Default: Org), and Last name (Default: Admin).
   * Once the script is complete you can login with the AD Username and AD User Password
 
-### Azure Template
-
-**Required Information:** If you are running more than 1 sandbox, or have a Virtual Network that includes 10.7.0.0/24, you will need to find a new CIDR to deploy the sandbox into.  If you only have additional sandboxes you can increment the third octet by 1, i.e. 10.7.1.0/24.
-
-<a href="https://transmogrify.azurewebsites.net/templates/sandbox/azuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
-
 ## DESTROY CONSUMER VIRTUAL MACHINES
-
-### Azure CLI
 
 This script will destroy all resources related to a specific organization
 
@@ -111,13 +106,17 @@ This script will destroy all resources related to a specific organization
   * `-g | --group <GROUP NAME>` Name of organization resource group
   * `-r | --common-rg <COMMON RG NAME>` Name of the Common Resource group where the Domain Controllers are located
 
-### Azure Portal
+# Software Needed
 
-* Remove resource group, Default: `VITC-Sandbox`, and all resources will be deleted.
+## Azure Scripts
+In order to deploy this sandbox, first install the Azure Command-line Interface (CLI) (https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest). These scripts have been validated for Linux, Windows and MacOS. This step can be done on any laptop from which you can access Azure, if you have local Admin rights.
 
-# ENTERPRISE SETUP
+## Azure Templates
+None
 
-## CREATE INFRASTRUCTURE SERVICES
+# Enterprise Setup
+
+## Create Infrasructure Services
 
 Depending on your setup, this is either fully automated, or broken up into automated scripts and a manual configuration step.
 
@@ -197,8 +196,8 @@ Once you have the Infrastructure setup, you will need do the following manual st
   * Name: `VITC-Machines`
   * Click `Ok`
 
-## ADD CONSUMER MACHINES
+## Add Consumer Machines
 Follow setps in INDIVIDUAL SETUP -> CREATE CONSUMER VIRTUAL MACHINES adding the `-e` flag to indicate enterprise configurations
 
-## DESTROY CONSUMER MACHINES
+## Destroy Consumer Machines
 Follow setps in INDIVIDUAL SETUP -> DESTROY CONSUMER VIRTUAL MACHINES adding the `-e` flag to indicate enterprise configurations
