@@ -17,9 +17,9 @@
     * [Azure Templates](#azure-templates)
   * [Enterprise Setup](#enterprise-setup)
     * [Create Infrastructure Services](#create-infrastructure-services)
-    * [Add Consumer Machines](#add-consumer-machines)
       * [New VNET Setup](#new-vnet-setup)
       * [Existing VNET Setup](#existing-vnet-setup)
+    * [Add Consumer Machines](#add-consumer-machines)
     * [Destroy Consumer Machines](#destroy-consumer-machines)
 <!--te-->
 
@@ -41,7 +41,7 @@ Once an account is established, logging in is included as a part of each of the 
 
 # Azure Portal
 
-## Sanbox Creation
+## Sandbox Creation
 
 <a href="https://transmogrify.azurewebsites.net/templates/sandbox/azuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
@@ -94,7 +94,7 @@ Logging into the Windows machine (the admin username and IP is displayed during 
   * You will be asked to supply the Active Directory password, the Organization AD (Active Directory) Username (Default: <group>.admin), First name (Default: Org), and Last name (Default: Admin).
   * Once the script is complete you can login with the AD Username and AD User Password
 
-## DESTROY CONSUMER VIRTUAL MACHINES
+## Destroy Consumer Virtual Machines
 
 This script will destroy all resources related to a specific organization
 
@@ -116,7 +116,7 @@ None
 
 # Enterprise Setup
 
-## Create Infrasructure Services
+## Create Infrastructure Services
 
 Depending on your setup, this is either fully automated, or broken up into automated scripts and a manual configuration step.
 
