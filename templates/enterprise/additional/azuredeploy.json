@@ -1,0 +1,134 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "sandboxVnetName": {
+        "type": "string",
+        "defaultValue": "VITC-Sandbox"
+      },
+      "sandboxVnetCIDR": {
+        "type": "string",
+        "defaultValue": "10.7.0.0/24",
+        "metadata": {
+          "description": "Enter the VNET CIDR you want to create, ex: 10.7.0.0/24."
+        }
+      },
+      "dnsServers": {
+        "type": "array",
+        "defaultValue": ["10.0.0.4", "10.0.0.5"],
+        "metadata": {
+          "description": "Leave empty for stand-alone sandbox"
+        }
+      },
+      "sandboxAdminUsername": {
+        "type": "string",
+        "defaultValue": "VITCSandboxAdmin",
+        "metadata": {
+          "description": "Admin User for Windows and Linux Machines"
+        }
+      },
+      "sandboxAdminPassword": {
+        "type": "securestring",
+        "metadata": {
+          "description": "Sandbox Admin Password"
+        }
+      },
+      "sandboxVmSize": {
+        "type": "string",
+        "allowedValues": [
+          "Standard_D1_v2",
+          "Standard_D2_v2",
+          "Standard_D3_v2",
+          "Standard_D4_v2",
+          "Standard_D5_v2",
+          "Standard_D11_v2",
+          "Standard_D12_v2",
+          "Standard_D13_v2",
+          "Standard_D14_v2",
+          "Standard_D15_v2",
+          "Standard_DS1_v2",
+          "Standard_DS2_v2",
+          "Standard_DS3_v2",
+          "Standard_DS4_v2",
+          "Standard_DS5_v2",
+          "Standard_DS11_v2",
+          "Standard_DS12_v2",
+          "Standard_DS13_v2",
+          "Standard_DS14_v2",
+          "Standard_DS15_v2"
+        ],
+        "defaultValue": "Standard_D3_v2"
+      }
+    },
+    "variables": {
+      "baseUri": "[deployment().properties.templateLink.uri]",
+      "winVMName": "VITCWinSandbox",
+      "linuxVMName": "VITCLinuxSandbox",
+      "sandboxTemplateURL": "[uri(variables('baseUri'),'../sandbox/azuredeploy.json')]"
+    },
+    "resources": [
+      {
+        "name": "[parameters('sandboxVnetName')]",
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2017-05-10",
+        "dependsOn": [],
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri": "[variables('sandboxTemplateURL')]",
+            "contentVersion": "1.0.0.0"
+          },
+          "parameters": {
+            "vnetName": {
+              "value": "[parameters('sandboxVnetName')]"
+            },
+            "vnetCIDR": {
+              "value": "[parameters('sandboxVnetCIDR')]"
+            },
+            "adminUsername": {
+              "value": "[parameters('sandboxAdminUsername')]"
+            },
+            "adminPassword": {
+              "value": "[parameters('sandboxAdminPassword')]"
+            },
+            "vmSize": {
+              "value": "[parameters('sandboxVmSize')]"
+            }
+          }
+        }
+      },
+      {
+        "apiVersion": "2016-03-30",
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(parameters('sandboxVnetName'),'/ConfigWin')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Resources/deployments', parameters('sandboxVnetName'))]",
+          "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"
+        ],
+        "properties": {
+          "publisher": "Microsoft.Powershell",
+          "type": "DSC",
+          "typeHandlerVersion": "2.19",
+          "autoUpgradeMinorVersion": true,
+          "settings": {
+            "ModulesUrl": "[variables('adBDCModulesURL')]",
+            "ConfigurationFunction": "[variables('adBDCConfigurationFunction')]",
+            "Properties": {
+              "DomainName": "[parameters('domainName')]",
+              "AdminCreds": {
+                "UserName": "[parameters('adminUserName')]",
+                "Password": "PrivateSettingsRef:AdminPassword"
+              }
+            }
+          },
+          "protectedSettings": {
+            "Items": {
+              "AdminPassword": "[parameters('adminPassword')]"
+            }
+          }
+        }
+      }
+    ],
+    "outputs": {}
+  }

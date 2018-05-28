@@ -161,7 +161,10 @@
     "vnetwithDNSTemplateUri": "[uri(variables('baseUri'),'nested-templates/update-vnet-dns.json')]",
     "winVMName": "VITCWinSandbox",
     "linuxVMName": "VITCLinuxSandbox",
-    "sandboxTemplateURL": "[uri(variables('baseUri'),'../sandbox/azuredeploy.json')]"
+    "sandboxTemplateURL": "[uri(variables('baseUri'),'../sandbox/azuredeploy.json')]",
+    "joinWindowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/joinWindowsToDomain.ps1')]",
+    "netBiosDomainParts": "split(parameters('domainName'), '.')",
+    "updateWindowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/updateWindowsGroup.ps1')]"
   },
   "resources": [
     {
@@ -469,7 +472,9 @@
       "name": "[parameters('sandboxVnetName')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
-      "dependsOn": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -496,34 +501,56 @@
       }
     },
     {
-      "apiVersion": "2016-03-30",
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('sandboxVnetName'),'/ConfigWin')]",
+      "name": "[concat(parameters('sandboxVnetName'),'/joinWin')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', parameters('sandboxVnetName'))]",
         "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"
       ],
+      "tags": {
+        "displayName": "config-win"
+      },
       "properties": {
-        "publisher": "Microsoft.Powershell",
-        "type": "DSC",
-        "typeHandlerVersion": "2.19",
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.9",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "ModulesUrl": "[variables('adBDCModulesURL')]",
-          "ConfigurationFunction": "[variables('adBDCConfigurationFunction')]",
-          "Properties": {
-            "DomainName": "[parameters('domainName')]",
-            "AdminCreds": {
-              "UserName": "[parameters('adminUserName')]",
-              "Password": "PrivateSettingsRef:AdminPassword"
-            }
-          }
+          "fileUris": [
+            "[variables('joinWindowsVmScriptURL')]"
+          ]
         },
         "protectedSettings": {
-          "Items": {
-            "AdminPassword": "[parameters('adminPassword')]"
-          }
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File joinWindowsToDomain.ps1 ', parameters('sandboxAdminUsername'), ' ', parameters('sandboxAdminPassword'), ' ', parameters('domainName'), ' ', parameters('adminUserName'), ' ', parameters('adminPassword'), ' ', resourceGroup().location)]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('sandboxVnetName'),'/joinWin')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', parameters('sandboxVnetName'))]",
+        "[resourceId('Microsoft.Resources/deployments', 'UpdateVNetDNS')]"
+      ],
+      "tags": {
+        "displayName": "config-win"
+      },
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.9",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('joinWindowsVmScriptURL')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File updateWindowsGroup.ps1 ', variables('netBiosDomainParts')[0])]"
         }
       }
     }
