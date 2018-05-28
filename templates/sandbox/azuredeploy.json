@@ -26,6 +26,12 @@
         "description": "Admin Password"
       }
     },
+    "dnsServers": {
+      "type": "array",
+      "metadata": {
+        "description": "Leave empty for stand-alone sandbox"
+      }
+    },
     "vmSize": {
       "type": "string",
       "allowedValues": [
@@ -68,7 +74,8 @@
     "windowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/configureWindows.ps1')]",
     "linuxVmScriptURL": "[uri(variables('baseUri'),'../../scripts/provision_rhel_machine.sh')]",
     "winVMName": "VITCWinSandbox",
-    "linuxVMName": "VITCLinuxSandbox"
+    "linuxVMName": "VITCLinuxSandbox",
+    "dnsServers": "[if(equals(parameters('dnsServers'),'null'), json('[]'), parameters('dnsServers'))]"
   },
   "resources": [
     {
@@ -101,7 +108,10 @@
               "addressPrefix": "[variables('subnetCIDR')]"
             }
           }
-        ]
+        ],
+        "dhcpOptions": {
+          "dnsServers": "[variables('dnsServers')]"
+        }
       }
     },
     {
