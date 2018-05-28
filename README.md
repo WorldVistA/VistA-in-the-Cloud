@@ -124,6 +124,10 @@ The required scripts are housed in the [templates](./templates).
 
 ### New VNET Setup:
 
+<a href="https://transmogrify.azurewebsites.net/templates/core-network/azuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+
 * Navigate to [core-network](./core-network)
 * Click on the Deploy Azure button that matches your setup
 * Fill in the required fields:
