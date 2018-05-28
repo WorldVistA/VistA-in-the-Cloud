@@ -28,7 +28,7 @@
     },
     "dnsServers": {
       "type": "array",
-      "defaultValue": "null",
+      "defaultValue": "",
       "metadata": {
         "description": "Leave empty for stand-alone sandbox"
       }
@@ -76,7 +76,7 @@
     "linuxVmScriptURL": "[uri(variables('baseUri'),'../../scripts/provision_rhel_machine.sh')]",
     "winVMName": "VITCWinSandbox",
     "linuxVMName": "VITCLinuxSandbox",
-    "dnsServers": "[if(equals(parameters('dnsServers'),'null'), json('[]'), parameters('dnsServers'))]"
+    "dnsServers": "[if(empty(parameters('dnsServers')), json('[]'), parameters('dnsServers'))]"
   },
   "resources": [
     {
