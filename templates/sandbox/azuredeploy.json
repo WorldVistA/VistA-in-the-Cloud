@@ -28,6 +28,7 @@
     },
     "dnsServers": {
       "type": "array",
+      "defaultValue": "null",
       "metadata": {
         "description": "Leave empty for stand-alone sandbox"
       }
