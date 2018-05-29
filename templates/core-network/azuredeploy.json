@@ -164,7 +164,11 @@
     "sandboxTemplateURL": "[uri(variables('baseUri'),'../sandbox/azuredeploy.json')]",
     "joinWindowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/joinWindowsToDomain.ps1')]",
     "netBiosDomainParts": "split(parameters('domainName'), '.')",
-    "updateWindowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/updateWindowsGroup.ps1')]"
+    "updateWindowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/updateWindowsGroup.ps1')]",
+    "subnetCIDRParts": "[split(parameters('vnetPrimarySubnetPrefix'), '/')]",
+    "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
+    "dc1IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.4')]",
+    "dc2IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.5')]"
   },
   "resources": [
     {
@@ -248,7 +252,7 @@
             "value": "[variables('ADSubnetRef')]"
           },
           "fixedPrivateIp": {
-            "value": "10.0.0.4"
+            "value": "[variables('dc1IP')]"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
@@ -291,7 +295,7 @@
             "value": "[variables('ADSubnetRef')]"
           },
           "fixedPrivateIp": {
-            "value": "10.0.0.5"
+            "value": "[variables('dc2IP')]"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
@@ -455,8 +459,8 @@
           },
           "dnsServers": {
             "value": [
-              "10.0.0.4",
-              "10.0.0.5"
+              "[variables('dc1IP')]",
+              "[variables('dc2IP')]"
             ]
           },
           "addressSpace": {
@@ -493,6 +497,12 @@
           },
           "adminPassword": {
             "value": "[parameters('sandboxAdminPassword')]"
+          },
+          "dnsServers": {
+            "value": [
+              "[variables('dc1IP')]",
+              "[variables('dc2IP')]"
+            ]
           },
           "vmSize": {
             "value": "[parameters('sandboxVmSize')]"
