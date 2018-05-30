@@ -504,6 +504,7 @@
               "[variables('dc2IP')]"
             ]
           },
+          "vnetPeeringName": "[parameters('vnetName')]",
           "vmSize": {
             "value": "[parameters('sandboxVmSize')]"
           }

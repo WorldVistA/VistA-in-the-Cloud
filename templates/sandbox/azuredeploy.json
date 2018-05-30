@@ -26,13 +26,6 @@
         "description": "Admin Password"
       }
     },
-    "dnsServers": {
-      "type": "array",
-      "defaultValue": [],
-      "metadata": {
-        "description": "Leave empty for stand-alone sandbox"
-      }
-    },
     "vmSize": {
       "type": "string",
       "allowedValues": [
@@ -58,6 +51,34 @@
         "Standard_DS15_v2"
       ],
       "defaultValue": "Standard_D3_v2"
+    },
+    "dnsServers": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Leave empty for stand-alone sandbox"
+      }
+    },
+    "vnetPeeringCIDR": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Leave empty for stand-alone sandbox"
+      }
+    },
+    "vnetPeeringName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Leave empty for stand-alone sandbox"
+      }
+    },
+    "vnetPeeringGroup": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Leave empty for stand-alone sandbox"
+      }
     }
   },
   "variables": {
@@ -76,7 +97,25 @@
     "linuxVmScriptURL": "[uri(variables('baseUri'),'../../scripts/provision_rhel_machine.sh')]",
     "winVMName": "VITCWinSandbox",
     "linuxVMName": "VITCLinuxSandbox",
-    "dnsServers": "[if(empty(parameters('dnsServers')), json('[]'), parameters('dnsServers'))]"
+    "dnsServers": "[if(empty(parameters('dnsServers')), json('[]'), parameters('dnsServers'))]",
+    "vnetPeeringSettings": [{
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": false,
+        "allowGatewayTransit": false,
+        "useRemoteGateways": false,
+        "remoteVirtualNetwork": {
+          "id": "[resourceId(variables('vnetPeeringGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetPeeringName'))]"
+        },
+        "remoteAddressSpace": {
+          "addressPrefixes": ["[parameters('vnetPeeringCIDR')]"]
+        },
+        "peeringState": "string"
+      },
+      "name": "[concat(parameters('vnetName'), '-to-Common')]"
+    }],
+    "vnetPeering": "[if(and(not(empty(parameters('vnetPeeringCIDR'))),not(empty(parameters('vnetPeeringName')))), variables('vnetPeeringSettings'), json('[]'))]",
+    "vnetPeeringGroup": "[if(not(empty(parameters('vnetPeeringGroup'))), parameters('vnetPeeringGroup'), resourceGroup().location)]"
   },
   "resources": [
     {
@@ -112,7 +151,8 @@
         ],
         "dhcpOptions": {
           "dnsServers": "[variables('dnsServers')]"
-        }
+        },
+        "virtualNetworkPeerings": "[variables('vnetPeering')]"
       }
     },
     {
