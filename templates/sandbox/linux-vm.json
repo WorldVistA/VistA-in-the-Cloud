@@ -1,0 +1,127 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subnetRef": {
+            "type": "string"
+        },
+        "storageAccountRefID": {
+            "type": "string"
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "linuxIP": {
+            "type": "string"
+        },
+        "vmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS5_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS13_v2",
+                "Standard_DS14_v2",
+                "Standard_DS15_v2"
+            ],
+            "defaultValue": "Standard_D3_v2"
+        }
+    },
+    "variables": {
+        "linuxVMName": "VITCLinuxSandbox",
+        "baseUri": "[deployment().properties.templateLink.uri]",
+        "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]",
+        "linuxVmScriptURL": "[uri(variables('baseUri'),'../../scripts/provision_rhel_machine.sh')]"
+    },
+    "resources": [
+        {
+            "name": "[variables('linuxVMName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [],
+            "properties": {
+              "mode": "Incremental",
+              "templateLink": {
+                "uri": "[variables('windowsVmTemplateURL')]",
+                "contentVersion": "1.0.0.0"
+              },
+              "parameters": {
+                "vmName": {
+                  "value": "[variables('linuxVMName')]"
+                },
+                "vmSize": {
+                  "value": "[parameters('vmSize')]"
+                },
+                "subnetId": {
+                  "value": "[parameters('subnetRef')]"
+                },
+                "fixedPrivateIp": {
+                  "value": "[parameters('linuxIP')]"
+                },
+                "adminUsername": {
+                  "value": "[parameters('adminUsername')]"
+                },
+                "adminPassword": {
+                  "value": "[parameters('adminPassword')]"
+                },
+                "diagStorageAccountId": {
+                  "value": "[parameters('storageAccountRefID')]"
+                },
+                "imagePublisher": {
+                  "value": "OpenLogic"
+                },
+                "imageOffer": {
+                  "value": "CentOS"
+                },
+                "imageSku": {
+                  "value": "7.3"
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('linuxVMName'), '/config')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[resourceId('Microsoft.Resources/deployments', variables('linuxVMName'))]"
+            ],
+            "tags": {
+              "displayName": "config-linux"
+            },
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": [
+                  "[variables('linuxVmScriptURL')]"
+                ]
+              },
+              "protectedSettings": {
+                "commandToExecute": "./provision_rhel_machine.sh"
+              }
+            }
+          }
+    ],
+    "outputs": {}
+}

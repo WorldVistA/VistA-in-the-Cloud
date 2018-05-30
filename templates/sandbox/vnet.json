@@ -1,0 +1,95 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "VITC-Sandbox"
+        },
+        "vnetCIDR": {
+            "type": "string",
+            "defaultValue": "10.7.0.0/24",
+            "metadata": {
+                "description": "Enter the VNET CIDR you want to create, ex: 10.7.0.0/24."
+            }
+        },
+        "dnsServers": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "vnetPeeringCIDR": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "vnetPeeringName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "vnetPeeringGroup": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "variables": {
+        "primarySubnetName": "[concat(parameters('vnetName'), '-Primary')]",
+        "subnetCIDRParts": "[split(parameters('vnetCIDR'), '/')]",
+        "subnetCIDR": "[concat(variables('subnetCIDRParts')[0], '/26')]",
+        "dnsServers": "[if(empty(parameters('dnsServers')), json('[]'), parameters('dnsServers'))]",
+        "vnetPeeringSettings": [
+            {
+                "properties": {
+                    "allowVirtualNetworkAccess": true,
+                    "allowForwardedTraffic": false,
+                    "allowGatewayTransit": false,
+                    "useRemoteGateways": false,
+                    "remoteVirtualNetwork": {
+                        "id": "[resourceId(variables('vnetPeeringGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetPeeringName'))]"
+                    },
+                    "remoteAddressSpace": {
+                        "addressPrefixes": [
+                            "[parameters('vnetPeeringCIDR')]"
+                        ]
+                    },
+                    "peeringState": "string"
+                },
+                "name": "[concat(parameters('vnetName'), '-to-Common')]"
+            }
+        ],
+        "vnetPeering": "[if(and(not(empty(parameters('vnetPeeringCIDR'))),not(empty(parameters('vnetPeeringName')))), variables('vnetPeeringSettings'), json('[]'))]",
+        "vnetPeeringGroup": "[if(not(empty(parameters('vnetPeeringGroup'))), parameters('vnetPeeringGroup'), resourceGroup().location)]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('vnetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2017-10-01",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCIDR')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('primarySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnetCIDR')]"
+                        }
+                    }
+                ],
+                "dhcpOptions": {
+                    "dnsServers": "[variables('dnsServers')]"
+                },
+                "virtualNetworkPeerings": "[variables('vnetPeering')]"
+            }
+        }
+    ],
+    "outputs": {
+        "vnetResourceID": {
+            "value": "[resourceId('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]",
+            "type": "string"
+        }
+    }
+}

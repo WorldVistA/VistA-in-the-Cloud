@@ -1,0 +1,32 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "VITC-Sandbox"
+        }
+    },
+    "variables": {
+        "storageAccountName": "[toLower(concat(replace(parameters('vnetName'), '-', ''), 'storage'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "apiVersion": "2016-01-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage",
+            "properties": {}
+        }
+    ],
+    "outputs": {
+        "storageResourceID": {
+            "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "type": "string"
+        }
+    }
+}

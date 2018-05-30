@@ -1,0 +1,133 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subnetRef": {
+            "type": "string"
+        },
+        "storageAccountRefID": {
+            "type": "string"
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "winIP": {
+            "type": "string"
+        },
+        "linuxIP": {
+            "type": "string"
+        },
+        "vmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS5_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS13_v2",
+                "Standard_DS14_v2",
+                "Standard_DS15_v2"
+            ],
+            "defaultValue": "Standard_D3_v2"
+        }
+    },
+    "variables": {
+        "winVMName": "VITCWinSandbox",
+        "baseUri": "[deployment().properties.templateLink.uri]",
+        "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]",
+        "windowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/configureWindows.ps1')]"
+    },
+    "resources": [
+        {
+            "name": "[variables('winVMName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('windowsVmTemplateURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vmName": {
+                        "value": "[variables('winVMName')]"
+                    },
+                    "vmSize": {
+                        "value": "[parameters('vmSize')]"
+                    },
+                    "subnetId": {
+                        "value": "[parameters('subnetRef')]"
+                    },
+                    "fixedPrivateIp": {
+                        "value": "[parameters('winIP')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "diagStorageAccountId": {
+                        "value": "[parameters('storageAccountRefID')]"
+                    },
+                    "assignPublicIP": {
+                        "value": true
+                    },
+                    "imagePublisher": {
+                        "value": "MicrosoftWindowsDesktop"
+                    },
+                    "imageOffer": {
+                        "value": "Windows-10"
+                    },
+                    "imageSku": {
+                        "value": "RS3-Pro"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('winVMName'), '/config')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('winVMName'))]"
+            ],
+            "tags": {
+                "displayName": "config-win"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('windowsVmScriptURL')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 ', parameters('linuxIP'))]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
