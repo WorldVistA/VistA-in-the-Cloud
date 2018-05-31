@@ -3,8 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "vnetName": {
-            "type": "string",
-            "defaultValue": "VITC-Sandbox"
+            "type": "string"
         }
     },
     "variables": {

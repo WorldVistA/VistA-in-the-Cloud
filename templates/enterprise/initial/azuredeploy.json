@@ -1,0 +1,403 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "VITCAdmin"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "domainName": {
+            "type": "string",
+            "defaultValue": "vitc.osehra.org"
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "VITC-Common"
+        },
+        "vnetCIDR": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "Enter the VNET CIDR you want to create, ex: 10.0.0.0/16."
+            }
+        },
+        "vnetPrimarySubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "Enter the primary subnet prefix you want to create, ex: 10.0.0.0/24."
+            }
+        },
+        "vnetSecondarySubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.1.0/24",
+            "metadata": {
+                "description": "Enter the secondary subnet prefix you want to create, ex: 10.0.1.0/24."
+            }
+        },
+        "jumpBoxVmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS5_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS13_v2",
+                "Standard_DS14_v2",
+                "Standard_DS15_v2"
+            ],
+            "defaultValue": "Standard_D2_v2"
+        },
+        "DCVmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS5_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS13_v2",
+                "Standard_DS14_v2",
+                "Standard_DS15_v2"
+            ],
+            "defaultValue": "Standard_D1_v2"
+        },
+        "sandboxVnetName": {
+            "type": "string",
+            "defaultValue": "VITC-Sandbox"
+        },
+        "sandboxVnetCIDR": {
+            "type": "string",
+            "defaultValue": "10.7.0.0/24",
+            "metadata": {
+                "description": "Enter the VNET CIDR you want to create, ex: 10.7.0.0/24."
+            }
+        },
+        "sandboxAdminUsername": {
+            "type": "string",
+            "defaultValue": "VITCSandboxAdmin",
+            "metadata": {
+                "description": "Admin User for Windows and Linux Machines"
+            }
+        },
+        "sandboxAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Sandbox Admin Password"
+            }
+        },
+        "sandboxVmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS5_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS13_v2",
+                "Standard_DS14_v2",
+                "Standard_DS15_v2"
+            ],
+            "defaultValue": "Standard_D3_v2"
+        }
+    },
+    "variables": {
+        "linuxVMName": "VITCLinuxSandbox",
+        "coreDeployName": "VITCCoreDeploy",
+        "secondaryDeployName": "VITCSecondaryDeploy",
+        "storageDeployName": "VITCSandboxStorage",
+        "vnetDeployName": "VITCSandboxVNet",
+        "winDeployName": "VITCSandboxWin",
+        "linuxDeployName": "VITCSandboxLinux",
+        "primarySandboxSubnetName": "[concat(parameters('sandboxVnetName'), '-Primary')]",
+        "baseUri": "[deployment().properties.templateLink.uri]",
+        "coreDeployURL": "[uri(variables('baseUri'),'../../core-network/nested-templates/core.json')]",
+        "secondaryDeployURL": "[uri(variables('baseUri'),'../../core-network/nested-templates/secondary.json')]",
+        "storageSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/storage.json')]",
+        "vnetSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/vnet.json')]",
+        "winVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/windows-vm.json')]",
+        "linuxVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/linux-vm.json')]",
+        "subnetCIDRParts": "[split(parameters('vnetPrimarySubnetPrefix'), '/')]",
+        "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
+        "dc1IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.4')]",
+        "dc2IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.5')]",
+        "sandboxSubnetCIDRParts": "[split(parameters('sandboxVnetCIDR'), '/')]",
+        "sandboxSubnetIPParts": "[split(variables('sandboxSubnetCIDRParts')[0], '.')]",
+        "linuxIP": "[concat( variables('sandboxSubnetIPParts')[0], '.', variables('sandboxSubnetIPParts')[1], '.', variables('sandboxSubnetIPParts')[2], '.4')]",
+        "winIP": "[concat( variables('sandboxSubnetIPParts')[0], '.', variables('sandboxSubnetIPParts')[1], '.', variables('sandboxSubnetIPParts')[2], '.5')]"
+    },
+    "resources": [
+        {
+            "name": "[variables('coreDeployName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('coreDeployURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {
+                        "value": "[parameters('vnetName')]"
+                    },
+                    "vnetCIDR": {
+                        "value": "[parameters('vnetCIDR')]"
+                    },
+                    "vnetPrimarySubnetPrefix": {
+                        "value": "[parameters('vnetPrimarySubnetPrefix')]"
+                    },
+                    "vnetSecondarySubnetPrefix": {
+                        "value": "[parameters('vnetSecondarySubnetPrefix')]"
+                    },
+                    "DCVmSize": {
+                        "value": "[parameters('DCVmSize')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "domainName": {
+                        "value": "[parameters('domainName')]"
+                    },
+                    "vnetPeeringCIDR": {
+                        "value": "[parameters('sandboxVnetCIDR')]"
+                    },
+                    "vnetPeeringName": {
+                        "value": "[parameters('sandboxVnetName')]"
+                    },
+                    "vnetPeeringGroup": {
+                        "value": "[resourceGroup().location]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[variables('secondaryDeployName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('secondaryDeployURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {
+                        "value": "[parameters('vnetName')]"
+                    },
+                    "vnetCIDR": {
+                        "value": "[parameters('vnetCIDR')]"
+                    },
+                    "vnetPrimarySubnetPrefix": {
+                        "value": "[parameters('vnetPrimarySubnetPrefix')]"
+                    },
+                    "vnetSecondarySubnetPrefix": {
+                        "value": "[parameters('vnetSecondarySubnetPrefix')]"
+                    },
+                    "DCVmSize": {
+                        "value": "[parameters('DCVmSize')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "domainName": {
+                        "value": "[parameters('domainName')]"
+                    },
+                    "jumpBoxVmSize": {
+                        "value": "[parameters('jumpBoxVmSize')]"
+                    },
+                    "diagStorageAccountName": {
+                        "value": "[reference(variables('coreDeployName')).outputs.storageResourceID.value]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[variables('storageDeployName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('storageSandboxTemplateURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {
+                        "value": "[parameters('vnetName')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[variables('vnetDeployName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('vnetSandboxTemplateURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {
+                        "value": "[parameters('sandboxVnetName')]"
+                    },
+                    "vnetCIDR": {
+                        "value": "[parameters('sandboxVnetCIDR')]"
+                    },
+                    "dnsServers": {
+                        "value": [
+                            "[variables('dc1IP')]",
+                            "[variables('dc2IP')]"
+                        ]
+                    },
+                    "vnetPeeringCIDR": {
+                        "value": "[parameters('vnetCIDR')]"
+                    },
+                    "vnetPeeringName": {
+                        "value": "[parameters('vnetName')]"
+                    },
+                    "vnetPeeringGroup": {
+                        "value": "[resourceGroup().location]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[variables('winDeployName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]",
+                "[resourceId('Microsoft.Resources/deployments', variables('storageDeployName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('winVMSandboxTemplateURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "subnetRef": {
+                        "value": "[concat(reference(variables('vnetDeployName')).outputs.vnetResourceID.value, '/subnets/', variables('primarySandboxSubnetName'))]"
+                    },
+                    "storageAccountRefID": {
+                        "value": "[reference(variables('storageDeployName')).outputs.storageResourceID.value]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('sandboxAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('sandboxAdminPassword')]"
+                    },
+                    "winIP": {
+                        "value": "[variables('winIP')]"
+                    },
+                    "linuxIP": {
+                        "value": "[variables('linuxIP')]"
+                    },
+                    "vmSize": {
+                        "value": "[parameters('sandboxVmSize')]"
+                    },
+                    "assignPublicIP": {
+                        "value": true
+                    }
+                }
+            }
+        },
+        {
+            "name": "[variables('linuxDeployName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]",
+                "[resourceId('Microsoft.Resources/deployments', variables('storageDeployName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('linuxVMSandboxTemplateURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "subnetRef": {
+                        "value": "[concat(reference(variables('vnetDeployName')).outputs.vnetResourceID.value, '/subnets/', variables('primarySandboxSubnetName'))]"
+                    },
+                    "storageAccountRefID": {
+                        "value": "[reference(variables('storageDeployName')).outputs.storageResourceID.value]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('sandboxAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('sandboxAdminPassword')]"
+                    },
+                    "linuxIP": {
+                        "value": "[variables('linuxIP')]"
+                    },
+                    "vmSize": {
+                        "value": "[parameters('sandboxVmSize')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

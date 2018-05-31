@@ -124,7 +124,7 @@ The required scripts are housed in the [templates](./templates).
 
 ### New VNET Setup:
 
-<a href="https://transmogrify.azurewebsites.net/templates/core-network/azuredeploy.json" target="_blank">
+<a href="https://transmogrify.azurewebsites.net/templates/enterprise/initial/azuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 

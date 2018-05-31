@@ -3,15 +3,10 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "vnetName": {
-            "type": "string",
-            "defaultValue": "VITC-Sandbox"
+            "type": "string"
         },
         "vnetCIDR": {
-            "type": "string",
-            "defaultValue": "10.7.0.0/24",
-            "metadata": {
-                "description": "Enter the VNET CIDR you want to create, ex: 10.7.0.0/24."
-            }
+            "type": "string"
         },
         "dnsServers": {
             "type": "array",
