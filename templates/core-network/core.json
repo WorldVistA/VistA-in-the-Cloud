@@ -42,7 +42,7 @@
         "secondarySubnetName": "[concat(parameters('vnetName'), '-Secondary')]",
         "DCHASetName": "[concat(substring(parameters('vnetName'), 0, 6), '-DCHASet')]",
         "baseUri": "[deployment().properties.templateLink.uri]",
-        "windowsVmTemplateURL": "[uri(variables('baseUri'),'../../primitives/windowsvm.json')]",
+        "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]",
         "adPDCVMName": "[concat(substring(parameters('vnetName'), 0, 6), '-DC1')]",
         "jumpNICVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
         "ADSubnetRef": "[concat(variables('jumpNICVnetID'), '/subnets/', variables('primarySubnetName'))]",
