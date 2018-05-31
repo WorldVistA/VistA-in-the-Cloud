@@ -30,6 +30,7 @@
         "subnetCIDRParts": "[split(parameters('vnetCIDR'), '/')]",
         "subnetCIDR": "[concat(variables('subnetCIDRParts')[0], '/26')]",
         "dnsServers": "[if(empty(parameters('dnsServers')), json('[]'), parameters('dnsServers'))]",
+        "vnetPeeringGroup": "[if(not(empty(parameters('vnetPeeringGroup'))), parameters('vnetPeeringGroup'), resourceGroup().location)]",
         "vnetPeeringSettings": [
             {
                 "properties": {
@@ -44,14 +45,12 @@
                         "addressPrefixes": [
                             "[parameters('vnetPeeringCIDR')]"
                         ]
-                    },
-                    "peeringState": "string"
+                    }
                 },
                 "name": "[concat(parameters('vnetName'), '-to-Common')]"
             }
         ],
-        "vnetPeering": "[if(and(not(empty(parameters('vnetPeeringCIDR'))),not(empty(parameters('vnetPeeringName')))), variables('vnetPeeringSettings'), json('[]'))]",
-        "vnetPeeringGroup": "[if(not(empty(parameters('vnetPeeringGroup'))), parameters('vnetPeeringGroup'), resourceGroup().location)]"
+        "vnetPeering": "[if(and(not(empty(parameters('vnetPeeringCIDR'))),not(empty(parameters('vnetPeeringName')))), variables('vnetPeeringSettings'), json('[]'))]"
     },
     "resources": [
         {

@@ -68,8 +68,7 @@
                         "addressPrefixes": [
                             "[parameters('vnetPeeringCIDR')]"
                         ]
-                    },
-                    "peeringState": "string"
+                    }
                 },
                 "name": "[concat('Common-to-', parameters('vnetName'))]"
             }
