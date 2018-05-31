@@ -29,7 +29,7 @@
     },
     "variables": {
         "baseUri": "[deployment().properties.templateLink.uri]",
-        "windowsVmTemplateURL": "[uri(variables('baseUri'),'../primitives/windowsvm.json')]",
+        "windowsVmTemplateURL": "[uri(variables('baseUri'),'../../primitives/windowsvm.json')]",
         "adBDCVMName": "[concat(substring(parameters('vnetName'), 0, 6), '-DC2')]",
         "primarySubnetName": "[concat(parameters('vnetName'), '-Primary')]",
         "secondarySubnetName": "[concat(parameters('vnetName'), '-Secondary')]",
