@@ -318,7 +318,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[variables('storageSandboxTemplateURL')]",
+                    "uri": "[variables('peeringDeployURL')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -344,7 +344,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[variables('storageSandboxTemplateURL')]",
+                    "uri": "[variables('peeringDeployURL')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
