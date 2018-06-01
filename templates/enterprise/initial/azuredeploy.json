@@ -308,7 +308,7 @@
             }
         },
         {
-            "name": "[concat('Microsoft.Network/virtualNetworks', '/', variables('vnetDeployName'), '/SandboxToCommon')]",
+            "name": "[concat('Microsoft.Network/virtualNetworks', '/', parameters('sandboxVnetName'), '/SandboxToCommon')]",
             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
             "apiVersion": "2017-10-01",
             "location": "[resourceGroup().location]",
@@ -323,7 +323,7 @@
             }
         },
         {
-            "name": "[concat('Microsoft.Network/virtualNetworks', '/', variables('coreDeployName'), '/CommonToSandbox')]",
+            "name": "[concat('Microsoft.Network/virtualNetworks', '/', parameters('vnetName'), '/CommonToSandbox')]",
             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
             "apiVersion": "2017-10-01",
             "location": "[resourceGroup().location]",
