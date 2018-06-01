@@ -164,7 +164,9 @@
         "sandboxSubnetCIDRParts": "[split(parameters('sandboxVnetCIDR'), '/')]",
         "sandboxSubnetIPParts": "[split(variables('sandboxSubnetCIDRParts')[0], '.')]",
         "linuxIP": "[concat( variables('sandboxSubnetIPParts')[0], '.', variables('sandboxSubnetIPParts')[1], '.', variables('sandboxSubnetIPParts')[2], '.4')]",
-        "winIP": "[concat( variables('sandboxSubnetIPParts')[0], '.', variables('sandboxSubnetIPParts')[1], '.', variables('sandboxSubnetIPParts')[2], '.5')]"
+        "winIP": "[concat( variables('sandboxSubnetIPParts')[0], '.', variables('sandboxSubnetIPParts')[1], '.', variables('sandboxSubnetIPParts')[2], '.5')]",
+        "commonVNet": "[resourceId(resourceGroup().location, 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+        "sandboxVNet": "[resourceId(resourceGroup().location, 'Microsoft.Network/virtualNetworks', parameters('sandboxVnetName'))]"
     },
     "resources": [
         {
@@ -232,17 +234,14 @@
                     "vnetName": {
                         "value": "[parameters('vnetName')]"
                     },
-                    "vnetCIDR": {
-                        "value": "[parameters('vnetCIDR')]"
+                    "DCVmSize": {
+                        "value": "[parameters('DCVmSize')]"
+                    },
+                    "jumpBoxVmSize": {
+                        "value": "[parameters('jumpBoxVmSize')]"
                     },
                     "vnetPrimarySubnetPrefix": {
                         "value": "[parameters('vnetPrimarySubnetPrefix')]"
-                    },
-                    "vnetSecondarySubnetPrefix": {
-                        "value": "[parameters('vnetSecondarySubnetPrefix')]"
-                    },
-                    "DCVmSize": {
-                        "value": "[parameters('DCVmSize')]"
                     },
                     "adminUsername": {
                         "value": "[parameters('adminUsername')]"
@@ -250,14 +249,11 @@
                     "adminPassword": {
                         "value": "[parameters('adminPassword')]"
                     },
-                    "domainName": {
-                        "value": "[parameters('domainName')]"
-                    },
-                    "jumpBoxVmSize": {
-                        "value": "[parameters('jumpBoxVmSize')]"
-                    },
                     "diagStorageAccountName": {
                         "value": "[reference(variables('coreDeployName')).outputs.storageResourceID.value]"
+                    },
+                    "domainName": {
+                        "value": "[parameters('domainName')]"
                     }
                 }
             }
@@ -317,6 +313,42 @@
                     "vnetPeeringGroup": {
                         "value": "[resourceGroup().location]"
                     }
+                }
+            }
+        },
+        {
+            "apiVersion": "2016-06-01",
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "name": "[concat(parameters('sandboxVnetName'), '/peering-to-remote-vnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": false,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false,
+                "remoteVirtualNetwork": {
+                    "id": "[variables('commonVNet')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2016-06-01",
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "name": "[concat(parameters('vnetName'), '/peering-to-remote-vnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": false,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false,
+                "remoteVirtualNetwork": {
+                    "id": "[variables('sandboxVNet')]"
                 }
             }
         },

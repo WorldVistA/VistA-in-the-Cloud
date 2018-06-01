@@ -25,15 +25,6 @@
         },
         "domainName": {
             "type": "string"
-        },
-        "vnetPeeringCIDR": {
-            "type": "string"
-        },
-        "vnetPeeringName": {
-            "type": "string"
-        },
-        "vnetPeeringGroup": {
-            "type": "string"
         }
     },
     "variables": {
@@ -52,28 +43,7 @@
         "adPDCModulesURL": "[uri(variables('baseUri'),'DSC/CreateADPDC.ps1.zip')]",
         "adPDCConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
         "dc2IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.5')]",
-        "vnetwithDNSTemplateUri": "[uri(variables('baseUri'),'./update-vnet-dns.json')]",
-        "vnetPeeringGroup": "[if(not(empty(parameters('vnetPeeringGroup'))), parameters('vnetPeeringGroup'), resourceGroup().location)]",
-        "vnetPeeringSettings": [
-            {
-                "properties": {
-                    "allowVirtualNetworkAccess": true,
-                    "allowForwardedTraffic": false,
-                    "allowGatewayTransit": false,
-                    "useRemoteGateways": false,
-                    "remoteVirtualNetwork": {
-                        "id": "[resourceId(variables('vnetPeeringGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetPeeringName'))]"
-                    },
-                    "remoteAddressSpace": {
-                        "addressPrefixes": [
-                            "[parameters('vnetPeeringCIDR')]"
-                        ]
-                    }
-                },
-                "name": "[concat('Common-to-', parameters('vnetName'))]"
-            }
-        ],
-        "vnetPeering": "[if(and(not(empty(parameters('vnetPeeringCIDR'))),not(empty(parameters('vnetPeeringName')))), variables('vnetPeeringSettings'), json('[]'))]"
+        "vnetwithDNSTemplateUri": "[uri(variables('baseUri'),'./update-vnet-dns.json')]"
     },
     "resources": [
         {
@@ -112,8 +82,7 @@
                             "addressPrefix": "[parameters('vnetSecondarySubnetPrefix')]"
                         }
                     }
-                ],
-                "virtualNetworkPeerings": "[variables('vnetPeering')]"
+                ]
             }
         },
         {
