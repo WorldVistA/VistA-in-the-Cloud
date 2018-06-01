@@ -204,15 +204,6 @@
                     },
                     "domainName": {
                         "value": "[parameters('domainName')]"
-                    },
-                    "vnetPeeringCIDR": {
-                        "value": "[parameters('sandboxVnetCIDR')]"
-                    },
-                    "vnetPeeringName": {
-                        "value": "[parameters('sandboxVnetName')]"
-                    },
-                    "vnetPeeringGroup": {
-                        "value": "[resourceGroup().location]"
                     }
                 }
             }
