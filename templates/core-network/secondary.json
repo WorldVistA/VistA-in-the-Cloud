@@ -76,7 +76,7 @@
                         "value": "[parameters('adminPassword')]"
                     },
                     "diagStorageAccountId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('diagStorageAccountName'))]"
+                        "value": "[parameters('diagStorageAccountName')]"
                     },
                     "availabilitySetId": {
                         "value": "[resourceId('Microsoft.Compute/availabilitySets', variables('DCHASetName'))]"
@@ -112,7 +112,7 @@
                         "value": "[parameters('adminPassword')]"
                     },
                     "diagStorageAccountId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('diagStorageAccountName'))]"
+                        "value": "[parameters('diagStorageAccountName')]"
                     },
                     "assignPublicIP": {
                         "value": true

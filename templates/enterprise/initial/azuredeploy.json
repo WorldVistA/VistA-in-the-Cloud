@@ -315,7 +315,6 @@
                 "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]"
             ],
             "properties": {
-                "mode": "Incremental",
                 "allowVirtualNetworkAccess": true,
                 "allowForwardedTraffic": false,
                 "allowGatewayTransit": false,
@@ -333,7 +332,6 @@
                 "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]"
             ],
             "properties": {
-                "mode": "Incremental",
                 "allowVirtualNetworkAccess": true,
                 "allowForwardedTraffic": false,
                 "allowGatewayTransit": false,
