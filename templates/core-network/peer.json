@@ -34,7 +34,7 @@
     },
     "resources": [
       {
-        "apiVersion": "2017-05-10",
+        "apiVersion": "2016-06-01",
         "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
         "name": "[variables('peeringName')]",
         "location": "[parameters('location')]",
