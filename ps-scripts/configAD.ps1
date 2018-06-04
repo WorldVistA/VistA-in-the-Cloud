@@ -8,12 +8,7 @@ Param(
 )
 
 $adPassSecure = $adPass | ConvertTo-SecureString -AsPlainText -Force
-# $adUser = "VITCAdmin"
 $adCredential = New-Object System.Management.Automation.PSCredential($adUser, $adPassSecure)
-
-# $S = New-PSSession -ComputerName "VITC-C-DC1"
-# Import-Module -PSsession $S -Name ActiveDirectory
-
 $domainPath = $($domain.Split("{.}") | ForEach-Object {"DC=$_"}) -join ","
 
 
