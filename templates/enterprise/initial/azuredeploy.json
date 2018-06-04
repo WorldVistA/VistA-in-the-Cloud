@@ -260,7 +260,7 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]",
-                "[resourceId('Microsoft.Resources/deployments', concat(variables('adPDCVMName'), '/config'))]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(variables('adPDCVMName'), '/config'))]"
             ],
             "tags": {
                 "displayName": "config-win"
@@ -509,7 +509,7 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', variables('winDeployName'))]",
-                "[resourceId('Microsoft.Resources/deployments', concat(variables('adPDCVMName'), '/config'))]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(variables('adPDCVMName'), '/config'))]"
             ],
             "tags": {
                 "displayName": "config-win"
@@ -536,7 +536,7 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', variables('winDeployName'))]",
-                "[resourceId('Microsoft.Resources/deployments', concat(variables('adPDCVMName'), '/config'))]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(variables('adPDCVMName'), '/config'))]"
             ],
             "tags": {
                 "displayName": "config-win"
