@@ -100,45 +100,6 @@
             "metadata": {
                 "description": "Enter the VNET CIDR you want to create, ex: 10.7.0.0/24."
             }
-        },
-        "sandboxAdminUsername": {
-            "type": "string",
-            "defaultValue": "VITCSandboxAdmin",
-            "metadata": {
-                "description": "Admin User for Windows and Linux Machines"
-            }
-        },
-        "sandboxAdminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Sandbox Admin Password"
-            }
-        },
-        "sandboxVmSize": {
-            "type": "string",
-            "allowedValues": [
-                "Standard_D1_v2",
-                "Standard_D2_v2",
-                "Standard_D3_v2",
-                "Standard_D4_v2",
-                "Standard_D5_v2",
-                "Standard_D11_v2",
-                "Standard_D12_v2",
-                "Standard_D13_v2",
-                "Standard_D14_v2",
-                "Standard_D15_v2",
-                "Standard_DS1_v2",
-                "Standard_DS2_v2",
-                "Standard_DS3_v2",
-                "Standard_DS4_v2",
-                "Standard_DS5_v2",
-                "Standard_DS11_v2",
-                "Standard_DS12_v2",
-                "Standard_DS13_v2",
-                "Standard_DS14_v2",
-                "Standard_DS15_v2"
-            ],
-            "defaultValue": "Standard_D3_v2"
         }
     },
     "variables": {
@@ -158,6 +119,7 @@
         "vnetSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/vnet.json')]",
         "winVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/windows-vm.json')]",
         "linuxVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/linux-vm.json')]",
+        "dcConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scritps/configAD.ps1')]",
         "subnetCIDRParts": "[split(parameters('vnetPrimarySubnetPrefix'), '/')]",
         "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
         "dc1IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.4')]",
@@ -166,8 +128,7 @@
         "sandboxSubnetIPParts": "[split(variables('sandboxSubnetCIDRParts')[0], '.')]",
         "linuxIP": "[concat( variables('sandboxSubnetIPParts')[0], '.', variables('sandboxSubnetIPParts')[1], '.', variables('sandboxSubnetIPParts')[2], '.4')]",
         "winIP": "[concat( variables('sandboxSubnetIPParts')[0], '.', variables('sandboxSubnetIPParts')[1], '.', variables('sandboxSubnetIPParts')[2], '.5')]",
-        "commonVNet": "[resourceId(resourceGroup().location, 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
-        "sandboxVNet": "[resourceId(resourceGroup().location, 'Microsoft.Network/virtualNetworks', parameters('sandboxVnetName'))]"
+        "adPDCVMName": "[concat(substring(parameters('vnetName'), 0, 6), '-DC1')]"
     },
     "resources": [
         {
@@ -210,235 +171,28 @@
             }
         },
         {
-            "name": "[variables('secondaryDeployName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('adPDCVMName'), '/config')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]"
             ],
+            "tags": {
+                "displayName": "config-win"
+            },
             "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('secondaryDeployURL')]",
-                    "contentVersion": "1.0.0.0"
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('dcConfigScriptURL')]"
+                    ]
                 },
-                "parameters": {
-                    "vnetName": {
-                        "value": "[parameters('vnetName')]"
-                    },
-                    "DCVmSize": {
-                        "value": "[parameters('DCVmSize')]"
-                    },
-                    "jumpBoxVmSize": {
-                        "value": "[parameters('jumpBoxVmSize')]"
-                    },
-                    "vnetPrimarySubnetPrefix": {
-                        "value": "[parameters('vnetPrimarySubnetPrefix')]"
-                    },
-                    "adminUsername": {
-                        "value": "[parameters('adminUsername')]"
-                    },
-                    "adminPassword": {
-                        "value": "[parameters('adminPassword')]"
-                    },
-                    "diagStorageAccountName": {
-                        "value": "[reference(variables('coreDeployName')).outputs.storageResourceID.value]"
-                    },
-                    "domainName": {
-                        "value": "[parameters('domainName')]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "[variables('storageDeployName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('storageSandboxTemplateURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "vnetName": {
-                        "value": "[parameters('vnetName')]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "[variables('vnetDeployName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('vnetSandboxTemplateURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "vnetName": {
-                        "value": "[parameters('sandboxVnetName')]"
-                    },
-                    "vnetCIDR": {
-                        "value": "[parameters('sandboxVnetCIDR')]"
-                    },
-                    "dnsServers": {
-                        "value": [
-                            "[variables('dc1IP')]",
-                            "[variables('dc2IP')]"
-                        ]
-                    },
-                    "vnetPeeringCIDR": {
-                        "value": "[parameters('vnetCIDR')]"
-                    },
-                    "vnetPeeringName": {
-                        "value": "[parameters('vnetName')]"
-                    },
-                    "vnetPeeringGroup": {
-                        "value": "[resourceGroup().location]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "PeerSandboxToCommon",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('peeringDeployURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "existingLocalVirtualNetworkName": {
-                        "value": "[parameters('sandboxVnetName')]"
-                    },
-                    "existingRemoteVirtualNetworkName": {
-                        "value": "[parameters('vnetName')]"
-                    },
-                    "existingRemoteVirtualNetworkResourceGroupName": {
-                        "value": "[resourceGroup().name]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "PeerCommonToSandbox",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('peeringDeployURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "existingLocalVirtualNetworkName": {
-                        "value": "[parameters('vnetName')]"
-                    },
-                    "existingRemoteVirtualNetworkName": {
-                        "value": "[parameters('sandboxVnetName')]"
-                    },
-                    "existingRemoteVirtualNetworkResourceGroupName": {
-                        "value": "[resourceGroup().name]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "[variables('winDeployName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]",
-                "[resourceId('Microsoft.Resources/deployments', variables('storageDeployName'))]",
-                "[resourceId('Microsoft.Resources/deployments', 'PeerSandboxToCommon')]",
-                "[resourceId('Microsoft.Resources/deployments', 'PeerCommonToSandbox')]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('winVMSandboxTemplateURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "subnetRef": {
-                        "value": "[concat(reference(variables('vnetDeployName')).outputs.vnetResourceID.value, '/subnets/', variables('primarySandboxSubnetName'))]"
-                    },
-                    "storageAccountRefID": {
-                        "value": "[reference(variables('storageDeployName')).outputs.storageResourceID.value]"
-                    },
-                    "adminUsername": {
-                        "value": "[parameters('sandboxAdminUsername')]"
-                    },
-                    "adminPassword": {
-                        "value": "[parameters('sandboxAdminPassword')]"
-                    },
-                    "winIP": {
-                        "value": "[variables('winIP')]"
-                    },
-                    "linuxIP": {
-                        "value": "[variables('linuxIP')]"
-                    },
-                    "vmSize": {
-                        "value": "[parameters('sandboxVmSize')]"
-                    },
-                    "assignPublicIP": {
-                        "value": true
-                    }
-                }
-            }
-        },
-        {
-            "name": "[variables('linuxDeployName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeployName'))]",
-                "[resourceId('Microsoft.Resources/deployments', variables('storageDeployName'))]",
-                "[resourceId('Microsoft.Resources/deployments', 'PeerSandboxToCommon')]",
-                "[resourceId('Microsoft.Resources/deployments', 'PeerCommonToSandbox')]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('linuxVMSandboxTemplateURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "subnetRef": {
-                        "value": "[concat(reference(variables('vnetDeployName')).outputs.vnetResourceID.value, '/subnets/', variables('primarySandboxSubnetName'))]"
-                    },
-                    "storageAccountRefID": {
-                        "value": "[reference(variables('storageDeployName')).outputs.storageResourceID.value]"
-                    },
-                    "adminUsername": {
-                        "value": "[parameters('sandboxAdminUsername')]"
-                    },
-                    "adminPassword": {
-                        "value": "[parameters('sandboxAdminPassword')]"
-                    },
-                    "linuxIP": {
-                        "value": "[variables('linuxIP')]"
-                    },
-                    "vmSize": {
-                        "value": "[parameters('sandboxVmSize')]"
-                    }
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 ', parameters('adminUsername'), ' ', parameters('adminPassword'), ' ', parameters('domainName'))]"
                 }
             }
         }
