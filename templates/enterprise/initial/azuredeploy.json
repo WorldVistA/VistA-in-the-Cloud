@@ -192,7 +192,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 ', parameters('adminUsername'), ' ', parameters('adminPassword'), ' ', parameters('domainName'))]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\"')]"
                 }
             }
         }
