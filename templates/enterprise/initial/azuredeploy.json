@@ -119,7 +119,7 @@
         "vnetSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/vnet.json')]",
         "winVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/windows-vm.json')]",
         "linuxVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/linux-vm.json')]",
-        "dcConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scritps/configAD.ps1')]",
+        "dcConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/configAD.ps1')]",
         "subnetCIDRParts": "[split(parameters('vnetPrimarySubnetPrefix'), '/')]",
         "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
         "dc1IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.4')]",
