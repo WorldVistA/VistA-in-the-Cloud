@@ -17,9 +17,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('winVMName'), '/config')]",
             "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('winVMName'))]"
-            ],
+            "dependsOn": [],
             "tags": {
                 "displayName": "config-win"
             },

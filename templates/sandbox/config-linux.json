@@ -13,9 +13,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('linuxVMName'), '/config')]",
             "location": "[resourceGroup().location]",
-            "dependsOn": [
-              "[resourceId('Microsoft.Resources/deployments', variables('linuxVMName'))]"
-            ],
+            "dependsOn": [],
             "tags": {
               "displayName": "config-linux"
             },
