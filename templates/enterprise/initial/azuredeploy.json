@@ -172,11 +172,24 @@
         "storageSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/storage.json')]",
         "vnetSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/vnet.json')]",
         "winVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/windows-vm.json')]",
+        "configWinURL": "[uri(variables('baseUri'),'../../../ps-scripts/configureWindows.ps1')]",
+        "configWinCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 \"', variables('linuxIP'), '\"')]",
+        "updateWinGroupURL": "[uri(variables('baseUri'),'../../../ps-scripts/updateWindowsGroup.ps1')]",
+        "updateWinGroupCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File updateWindowsGroup.ps1 \"', variables('netBiosName'), '\"')]",
+
         "linuxVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/linux-vm.json')]",
+        "configLinuxURL": "[uri(variables('baseUri'),'../../../scripts/provision_rhel_machine.sh')]",
+        "configLinuxCommand": "./provision_rhel_machine.sh",
+
         "dcConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/configAD.ps1')]",
+        "configADCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
         "orgConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createOrgOU.ps1')]",
+        "createOrgOUCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File createOrgOU.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
         "userConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createUserInOU.ps1')]",
-        "joinWindowsScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createUserInOU.ps1')]",
+        "createUserCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File createUserInOU.ps1 \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
+        "joinWindowsScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/joinWindowsToDomain.ps1')]",
+        "joinWindowsCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File joinWindowsToDomain.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
+
         "subnetCIDRParts": "[split(parameters('vnetPrimarySubnetPrefix'), '/')]",
         "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
         "dc1IP": "[concat( variables('subnetIPParts')[0], '.', variables('subnetIPParts')[1], '.', variables('subnetIPParts')[2], '.4')]",
@@ -236,7 +249,7 @@
                 "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]"
             ],
             "tags": {
-                "displayName": "config-win"
+                "displayName": "config-ad"
             },
             "properties": {
                 "publisher": "Microsoft.Compute",
@@ -245,65 +258,14 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[variables('dcConfigScriptURL')]"
+                        "[variables('dcConfigScriptURL')]",
+                        "[variables('orgConfigScriptURL')]",
+                        "[variables('userConfigScriptURL')]",
+                        "[variables('joinWindowsScriptURL')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
-                }
-            }
-        },
-        {
-            "apiVersion": "2015-06-15",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('adPDCVMName'), '/configOrg')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]",
-                "[concat('Microsoft.Compute/virtualMachines/', variables('adPDCVMName'),'/extensions/config')]"
-            ],
-            "tags": {
-                "displayName": "config-win"
-            },
-            "properties": {
-                "publisher": "Microsoft.Compute",
-                "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.9",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [
-                        "[variables('orgConfigScriptURL')]"
-                    ]
-                },
-                "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File createOrgOU.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
-                }
-            }
-        },
-        {
-            "apiVersion": "2015-06-15",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('adPDCVMName'), '/configUser')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('coreDeployName'))]",
-                "[concat('Microsoft.Compute/virtualMachines/', variables('adPDCVMName'),'/extensions/config')]"
-            ],
-            "tags": {
-                "displayName": "config-win"
-            },
-            "properties": {
-                "publisher": "Microsoft.Compute",
-                "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.9",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [
-                        "[variables('userConfigScriptURL')]"
-                    ]
-                },
-                "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File createUserInOU.ps1 \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
+                    "commandToExecute": "[concat(variables('configADCommand'), ' && ', variables('createOrgOUCommand'), ' && ', variables('createUserCommand'), ' && ', variables('joinWindowsCommand'))]"
                 }
             }
         },
@@ -505,7 +467,7 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('adPDCVMName'), '/updateWinGroup')]",
+            "name": "[concat(variables('winVMName'), '/configWin')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', variables('winDeployName'))]",
@@ -521,38 +483,12 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[variables('joinWindowsScriptURL')]"
+                        "[variables('configWinURL')]",
+                        "[variables('updateWinGroupURL')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File joinWindowsToDomain.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
-                }
-            }
-        },
-        {
-            "apiVersion": "2015-06-15",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('winVMName'), '/updateWinGroup')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('winDeployName'))]",
-                "[concat('Microsoft.Compute/virtualMachines/', variables('adPDCVMName'),'/extensions/config')]"
-            ],
-            "tags": {
-                "displayName": "config-win"
-            },
-            "properties": {
-                "publisher": "Microsoft.Compute",
-                "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.9",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [
-                        "[variables('joinWindowsScriptURL')]"
-                    ]
-                },
-                "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File updateWindowsGroup.ps1 \"', variables('netBiosName'), '\" \"', resourceGroup().name, '\" \"', variables('winVMName'), '\"')]"
+                    "commandToExecute": "[concat(variables('configWinCommand'), ' && ', variables('updateWinGroupCommand'))]"
                 }
             }
         },
@@ -591,6 +527,33 @@
                     "vmSize": {
                         "value": "[parameters('sandboxVmSize')]"
                     }
+                }
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('linuxVMName'), '/configLinux')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('linuxDeployName'))]",
+                "[concat('Microsoft.Compute/virtualMachines/', variables('adPDCVMName'),'/extensions/config')]"
+            ],
+            "tags": {
+                "displayName": "config-linux"
+            },
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('configLinuxURL')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[variables('configLinuxCommand')]"
                 }
             }
         }
