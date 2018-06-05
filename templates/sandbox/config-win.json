@@ -32,7 +32,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 \"', parameters('linuxIP'), '\" \"', resourceGroup().name, '\" \"', variables('winVMName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 \"', parameters('linuxIP'), '\"')]"
                 }
             }
         }
