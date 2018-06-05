@@ -1,0 +1,39 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {
+        "linuxVMName": "VITCLinuxSandbox",
+        "baseUri": "[deployment().properties.templateLink.uri]",
+        "linuxVmScriptURL": "[uri(variables('baseUri'),'../../scripts/provision_rhel_machine.sh')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('linuxVMName'), '/config')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[resourceId('Microsoft.Resources/deployments', variables('linuxVMName'))]"
+            ],
+            "tags": {
+              "displayName": "config-linux"
+            },
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": [
+                  "[variables('linuxVmScriptURL')]"
+                ]
+              },
+              "protectedSettings": {
+                "commandToExecute": "./provision_rhel_machine.sh"
+              }
+            }
+          }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,43 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "linuxIP": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "winVMName": "VITCWinSandbox",
+        "baseUri": "[deployment().properties.templateLink.uri]",
+        "windowsVmScriptURL": "[uri(variables('baseUri'),'../../ps-scripts/configureWindows.ps1')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('winVMName'), '/config')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('winVMName'))]"
+            ],
+            "tags": {
+                "displayName": "config-win"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('windowsVmScriptURL')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 \"', parameters('linuxIP'), '\" \"', resourceGroup().name, '\" \"', variables('winVMName'), '\"')]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

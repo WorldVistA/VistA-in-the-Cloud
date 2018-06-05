@@ -58,11 +58,15 @@
     "storageDeployTemplateURL": "[uri(variables('baseUri'),'./storage.json')]",
     "vnetDeployTemplateURL": "[uri(variables('baseUri'),'./vnet.json')]",
     "winDeployTemplateURL": "[uri(variables('baseUri'),'./windows-vm.json')]",
+    "winConfigTemplateURL": "[uri(variables('baseUri'),'./config-win.json')]",
     "linuxDeployTemplateURL": "[uri(variables('baseUri'),'./linux-vm.json')]",
+    "linuxConfigTemplateURL": "[uri(variables('baseUri'),'./config-linux.json')]",
     "storageDeployName": "SandboxStorage",
     "vnetDeployName": "SandboxVNet",
     "winDeployName": "SandboxWin",
+    "winConfigName": "SandboxWinConfig",
     "linuxDeployName": "SandboxLinux",
+    "linuxConfigName": "SandboxLinuxConfig",
     "primarySubnetName": "[concat(parameters('vnetName'), '-Primary')]",
     "subnetCIDRParts": "[split(parameters('vnetCIDR'), '/')]",
     "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
@@ -139,11 +143,28 @@
           "winIP": {
             "value": "[variables('winIP')]"
           },
-          "linuxIP": {
-            "value": "[variables('linuxIP')]"
-          },
           "vmSize": {
             "value": "[parameters('vmSize')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "[variables('winConfigName')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', variables('winDeployName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('winConfigTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "linuxIP": {
+            "value": "[variables('linuxIP')]"
           }
         }
       }
@@ -182,6 +203,22 @@
             "value": "[parameters('vmSize')]"
           }
         }
+      }
+    },
+    {
+      "name": "[variables('linuxConfigName')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', variables('linuxDeployName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('linuxConfigTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {}
       }
     }
   ],

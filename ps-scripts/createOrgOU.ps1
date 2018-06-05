@@ -6,11 +6,7 @@ Param(
     [Parameter(Mandatory=$True,Position=3)]
     [string]$org,
     [Parameter(Mandatory=$True,Position=4)]
-    [string]$domain,
-    [Parameter(Mandatory=$True,Position=5)]
-    [string]$resourceGroup,
-    [Parameter(Mandatory=$True,Position=6)]
-    [string]$vmName
+    [string]$domain
 )
 
 $adPassSecure = $adPass | ConvertTo-SecureString -AsPlainText -Force
@@ -21,5 +17,3 @@ New-ADOrganizationalUnit -name $org -Path "OU=VITC-Machines,$domainPath" -Creden
 New-ADOrganizationalUnit -name "Computers" -Path "OU=$org,OU=VITC-Machines,$domainPath" -Credential $adCredential
 New-ADOrganizationalUnit -name "Security Groups" -Path "OU=$org,OU=VITC-Machines,$domainPath" -Credential $adCredential
 New-ADOrganizationalUnit -name "Users" -Path "OU=$org,OU=VITC-Machines,$domainPath" -Credential $adCredential
-
-Remove-AzureRmVMExtension -ResourceGroupName "$resourceGroup" -VMName "$vmName" -Name "CustomScriptExtension"
