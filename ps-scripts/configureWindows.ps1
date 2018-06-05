@@ -1,6 +1,10 @@
 param (
-  [Parameter(Mandatory)]
-  [String]$serverAddress
+  [Parameter(Mandatory=$True,Position=1)]
+  [String]$serverAddress,
+  [Parameter(Mandatory=$True,Position=2)]
+  [String]$resourceGroup,
+  [Parameter(Mandatory=$True,Position=3)]
+  [String]$vmName
 )
 
 $ErrorActionPreference = "SilentlyContinue"
@@ -52,3 +56,5 @@ shortcut "C:\Program Files (x86)\VistA\VITALS\VitalsManager.exe" "$env:Public\De
 weblink "https://code.osehra.org/vivian/" $env:Public\Desktop\Vivian.url
 weblink "https://code.osehra.org/dox/" $env:Public\Desktop\Dox.url
 weblink "http://code.osehra.org/CDash/viewProjects.php" $env:Public\Desktop\CDash.url
+
+Remove-AzureRmVMExtension -ResourceGroupName "$resourceGroup" -VMName "$vmName" -Name "CustomScriptExtension"

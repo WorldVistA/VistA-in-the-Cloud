@@ -249,7 +249,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
                 }
             }
         },
@@ -276,7 +276,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File createOrgOU.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File createOrgOU.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
                 }
             }
         },
@@ -303,7 +303,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File createUserInOU.ps1 \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('domainName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File createUserInOU.ps1 \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
                 }
             }
         },
@@ -525,7 +525,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File joinWindowsToDomain.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File joinWindowsToDomain.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]"
                 }
             }
         },
@@ -552,7 +552,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File joinWindowsToDomain.ps1 \"', variables('netBiosName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File updateWindowsGroup.ps1 \"', variables('netBiosName'), '\" \"', resourceGroup().name, '\" \"', variables('winVMName'), '\"')]"
                 }
             }
         },
