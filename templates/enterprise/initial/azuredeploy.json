@@ -249,18 +249,19 @@
             "properties": {
                 "publisher": "Microsoft.Compute",
                 "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.9",
-                "autoUpgradeMinorVersion": true,
+                "typeHandlerVersion": "1.8",
+                "autoUpgradeMinorVersion": false,
                 "settings": {
                     "fileUris": [
                         "[variables('dcConfigScriptURL')]",
                         "[variables('orgConfigScriptURL')]",
                         "[variables('userConfigScriptURL')]",
                         "[variables('adWrapperURL')]"
-                    ],
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File adWrapper.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\"')]"
+                    ]
                 },
-                "protectedSettings": {}
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File adWrapper.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\"')]"
+                }
             }
         },
         {
@@ -470,8 +471,8 @@
             "properties": {
                 "publisher": "Microsoft.Compute",
                 "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.9",
-                "autoUpgradeMinorVersion": true,
+                "typeHandlerVersion": "1.8",
+                "autoUpgradeMinorVersion": false,
                 "settings": {
                     "fileUris": [
                         "[variables('configWinURL')]",
@@ -481,7 +482,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File winWrapperURL.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File winWrapper.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\"')]"
                 }
             }
         },

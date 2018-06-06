@@ -20,9 +20,7 @@ Param(
 $configADScript = "configAD.ps1 '$adUser' '$adPass' '$domain'"
 $createOrgOUScript = "createOrgOU.ps1 '$adUser' '$adPass' '$org' '$domain'"
 $createUserInOUScript = "createUserInOU.ps1 '$username' '$firstName' '$lastName' '$org' '$userPass' '$domain'"
-$joinWindowsToDomainScript = "./joinWindowsToDomain.ps1 '$username' '$userPass' '$adUser' '$adPass' '$org' '$domain'"
 
 Invoke-Expression $configADScript
 Invoke-Expression $createOrgOUScript
 Invoke-Expression $createUserInOUScript
-Invoke-Expression $joinWindowsToDomainScript
