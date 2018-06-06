@@ -173,22 +173,18 @@
         "vnetSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/vnet.json')]",
         "winVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/windows-vm.json')]",
         "configWinURL": "[uri(variables('baseUri'),'../../../ps-scripts/configureWindows.ps1')]",
-        "configWinCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File configureWindows.ps1 \"', variables('linuxIP'), '\"')]",
         "updateWinGroupURL": "[uri(variables('baseUri'),'../../../ps-scripts/updateWindowsGroup.ps1')]",
-        "updateWinGroupCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File updateWindowsGroup.ps1 \"', variables('netBiosName'), '\"')]",
+        "winWrapperURL": "[uri(variables('baseUri'),'../../../ps-scripts/winWrapper.ps1')]",
 
         "linuxVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/linux-vm.json')]",
         "configLinuxURL": "[uri(variables('baseUri'),'../../../scripts/provision_rhel_machine.sh')]",
         "configLinuxCommand": "./provision_rhel_machine.sh",
 
         "dcConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/configAD.ps1')]",
-        "configADCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
         "orgConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createOrgOU.ps1')]",
-        "createOrgOUCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File createOrgOU.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
         "userConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createUserInOU.ps1')]",
-        "createUserCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File createUserInOU.ps1 \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
         "joinWindowsScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/joinWindowsToDomain.ps1')]",
-        "joinWindowsCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File joinWindowsToDomain.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\" \"', resourceGroup().name, '\" \"', variables('adPDCVMName'), '\"')]",
+        "adWrapperURL": "[uri(variables('baseUri'),'../../../ps-scripts/adWrapper.ps1')]",
 
         "subnetCIDRParts": "[split(parameters('vnetPrimarySubnetPrefix'), '/')]",
         "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
@@ -261,11 +257,11 @@
                         "[variables('dcConfigScriptURL')]",
                         "[variables('orgConfigScriptURL')]",
                         "[variables('userConfigScriptURL')]",
-                        "[variables('joinWindowsScriptURL')]"
+                        "[variables('adWrapperURL')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat(variables('configADCommand'), ' && ', variables('createOrgOUCommand'), ' && ', variables('createUserCommand'), ' && ', variables('joinWindowsCommand'))]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File adWrapper.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\"')]"
                 }
             }
         },
@@ -452,9 +448,6 @@
                     "winIP": {
                         "value": "[variables('winIP')]"
                     },
-                    "linuxIP": {
-                        "value": "[variables('linuxIP')]"
-                    },
                     "vmSize": {
                         "value": "[parameters('sandboxVmSize')]"
                     },
@@ -484,11 +477,13 @@
                 "settings": {
                     "fileUris": [
                         "[variables('configWinURL')]",
-                        "[variables('updateWinGroupURL')]"
+                        "[variables('updateWinGroupURL')]",
+                        "[variables('joinWindowsScriptURL')]",
+                        "[variables('winWrapperURL')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat(variables('configWinCommand'), ' && ', variables('updateWinGroupCommand'))]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File updateWindowsGroup.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\"')]"
                 }
             }
         },
@@ -520,9 +515,6 @@
                     },
                     "adminPassword": {
                         "value": "[parameters('sandboxAdminPassword')]"
-                    },
-                    "linuxIP": {
-                        "value": "[variables('linuxIP')]"
                     },
                     "vmSize": {
                         "value": "[parameters('sandboxVmSize')]"
