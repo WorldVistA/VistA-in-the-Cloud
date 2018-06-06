@@ -546,7 +546,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('./linuxWrapper.sh ', parameters('sandboxOrgName'), ' ', parameters('adminPassword'), ' ', parameters('domainName'))]"
+                    "commandToExecute": "[concat('./linuxWrapper.sh \"', parameters('sandboxOrgName'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\"')]"
                 }
             }
         }
