@@ -177,8 +177,7 @@
         "winWrapperURL": "[uri(variables('baseUri'),'../../../ps-scripts/winWrapper.ps1')]",
 
         "linuxVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/linux-vm.json')]",
-        "configLinuxURL": "[uri(variables('baseUri'),'../../../scripts/provision_rhel_machine.sh')]",
-        "configLinuxCommand": "./provision_rhel_machine.sh",
+        "configLinuxURL": "[uri(variables('baseUri'),'../../../scripts/linuxWrapper.sh')]",
 
         "dcConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/configAD.ps1')]",
         "orgConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createOrgOU.ps1')]",
@@ -258,11 +257,10 @@
                         "[variables('orgConfigScriptURL')]",
                         "[variables('userConfigScriptURL')]",
                         "[variables('adWrapperURL')]"
-                    ]
-                },
-                "protectedSettings": {
+                    ],
                     "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File adWrapper.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\"')]"
-                }
+                },
+                "protectedSettings": {}
             }
         },
         {
@@ -483,7 +481,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File updateWindowsGroup.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File winWrapperURL.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('domainName'), '\"')]"
                 }
             }
         },
@@ -516,6 +514,9 @@
                     "adminPassword": {
                         "value": "[parameters('sandboxAdminPassword')]"
                     },
+                    "linuxIP": {
+                        "value": "[variables('linuxIP')]"
+                    },
                     "vmSize": {
                         "value": "[parameters('sandboxVmSize')]"
                     }
@@ -545,7 +546,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[variables('configLinuxCommand')]"
+                    "commandToExecute": "[concat('./linuxWrapper.sh ', parameters('sandboxOrgName'), ' ', parameters('adminPassword'), ' ', parameters('domainName'))]"
                 }
             }
         }
