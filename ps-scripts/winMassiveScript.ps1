@@ -32,7 +32,7 @@ winrm quickconfig -q
 Set-Item WSMan:\localhost\Client\TrustedHosts -Value "$adCompName.$domain" -Force
 
 # Import Active Directory to Powershell
-$S = New-PSSession -ComputerName "$adCompName.$domain" -Credential $adCredential -Force
+$S = New-PSSession -ComputerName "$adCompName.$domain" -Credential $adCredential
 Import-Module -PSsession $S -Name ActiveDirectory
 
 # Create Org in OU (createOrgOU.ps1)
@@ -44,7 +44,7 @@ New-ADOrganizationalUnit -name "Users" -Path "OU=$org,OU=VITC-Machines,$domainPa
 # Create User in OU (createUserInOU.ps1)
 $userSecurePass = $userPass | ConvertTo-SecureString -AsPlainText -Force
 
-New-ADUser -Name "$username" -SamAccountName "$username" -Credential "$adCredential" -GivenName "$firstName" -Surname "$lastName" -DisplayName "$firstName $lastName" -Enabled $true -AccountPassword $userSecurePass -Path "OU=Users,OU=$org,OU=VITC-Machines,$domainPath"
+New-ADUser -Name "$username" -SamAccountName "$username" -Credential $adCredential -GivenName "$firstName" -Surname "$lastName" -DisplayName "$firstName $lastName" -Enabled $true -AccountPassword $userSecurePass -Path "OU=Users,OU=$org,OU=VITC-Machines,$domainPath"
 
 # Join Win VM to Domain (joinWindowsToDomain.ps1)
 $adminCredentials = $(New-Object System.Management.Automation.PSCredential($username, $userSecurePass))
@@ -101,3 +101,5 @@ shortcut "C:\Program Files (x86)\VistA\VITALS\VitalsManager.exe" "$env:Public\De
 weblink "https://code.osehra.org/vivian/" $env:Public\Desktop\Vivian.url
 weblink "https://code.osehra.org/dox/" $env:Public\Desktop\Dox.url
 weblink "http://code.osehra.org/CDash/viewProjects.php" $env:Public\Desktop\CDash.url
+
+Restart-Computer
