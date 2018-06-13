@@ -3,33 +3,36 @@ param (
     [String]$serverAddress,
     [Parameter(Mandatory=$True,Position=2)]
     [string]$NetBiosName,
-    [Parameter(Mandatory=$True,Position=1)]
-    [string]$adUser,
     [Parameter(Mandatory=$True,Position=3)]
-    [string]$adPass,
+    [string]$adUser,
     [Parameter(Mandatory=$True,Position=4)]
-    [string]$adCompName,
+    [string]$adPass,
     [Parameter(Mandatory=$True,Position=5)]
-    [string]$domain,
+    [string]$adCompName,
     [Parameter(Mandatory=$True,Position=6)]
-    [string]$org,
+    [string]$domain,
     [Parameter(Mandatory=$True,Position=7)]
-    [string]$username,
+    [string]$org,
     [Parameter(Mandatory=$True,Position=8)]
-    [string]$userPass,
+    [string]$username,
     [Parameter(Mandatory=$True,Position=9)]
-    [string]$firstName,
+    [string]$userPass,
     [Parameter(Mandatory=$True,Position=10)]
+    [string]$firstName,
+    [Parameter(Mandatory=$True,Position=11)]
     [string]$lastName
 )
 
 # Helper Variables
 $adPassSecure = $adPass | ConvertTo-SecureString -AsPlainText -Force
-$adCredential = New-Object System.Management.Automation.PSCredential($adUser, $adPassSecure)
+$adCredential = New-Object System.Management.Automation.PSCredential -Argumentlist "$NetBiosName\$adUser", $adPassSecure
 $domainPath = $($domain.Split("{.}") | ForEach-Object {"DC=$_"}) -join ","
 
+winrm quickconfig -q
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "$adCompName.$domain" -Force
+
 # Import Active Directory to Powershell
-$S = New-PSSession -ComputerName "$adCompName"
+$S = New-PSSession -ComputerName "$adCompName.$domain" -Credential $adCredential -Force
 Import-Module -PSsession $S -Name ActiveDirectory
 
 # Create Org in OU (createOrgOU.ps1)
