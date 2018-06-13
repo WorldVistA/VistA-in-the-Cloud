@@ -10,10 +10,21 @@ Param(
     [Parameter(Mandatory=$True,Position=5)]
     [string]$userPass,
     [Parameter(Mandatory=$True,Position=6)]
-    [string]$domain
+    [string]$domain,
+    [Parameter(Mandatory=$True,Position=7)]
+    [string]$adUser,
+    [Parameter(Mandatory=$True,Position=8)]
+    [string]$adPass,
+    [Parameter(Mandatory=$True,Position=9)]
+    [string]$adCompName
 )
 
 $userSecurePass = $userPass | ConvertTo-SecureString -AsPlainText -Force
 $domainPath = $($domain.Split("{.}") | ForEach-Object {"DC=$_"}) -join ","
+$adPassSecure = $adPass | ConvertTo-SecureString -AsPlainText -Force
+$adCredential = New-Object System.Management.Automation.PSCredential($adUser, $adPassSecure)
 
-New-ADUser -Name "$username" -SamAccountName "$username" -GivenName "$firstName" -Surname "$lastName" -DisplayName "$firstName $lastName" -Enabled $true -AccountPassword $userSecurePass -Path "OU=Users,OU=$org,OU=VITC-Machines,$domainPath"
+$S = New-PSSession -ComputerName "$adCompName"
+Import-Module -PSsession $S -Name ActiveDirectory
+
+New-ADUser -Name "$username" -SamAccountName "$username" -Credential "$adCredential" -GivenName "$firstName" -Surname "$lastName" -DisplayName "$firstName $lastName" -Enabled $true -AccountPassword $userSecurePass -Path "OU=Users,OU=$org,OU=VITC-Machines,$domainPath"

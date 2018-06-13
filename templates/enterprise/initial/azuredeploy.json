@@ -172,18 +172,12 @@
         "storageSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/storage.json')]",
         "vnetSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/vnet.json')]",
         "winVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/windows-vm.json')]",
-        "configWinURL": "[uri(variables('baseUri'),'../../../ps-scripts/configureWindows.ps1')]",
-        "updateWinGroupURL": "[uri(variables('baseUri'),'../../../ps-scripts/updateWindowsGroup.ps1')]",
-        "winWrapperURL": "[uri(variables('baseUri'),'../../../ps-scripts/winWrapper.ps1')]",
+        "winMassiveScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/winMassiveScript.ps1')]",
 
         "linuxVMSandboxTemplateURL": "[uri(variables('baseUri'),'../../sandbox/linux-vm.json')]",
         "configLinuxURL": "[uri(variables('baseUri'),'../../../scripts/linuxWrapper.sh')]",
 
         "dcConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/configAD.ps1')]",
-        "orgConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createOrgOU.ps1')]",
-        "userConfigScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/createUserInOU.ps1')]",
-        "joinWindowsScriptURL": "[uri(variables('baseUri'),'../../../ps-scripts/joinWindowsToDomain.ps1')]",
-        "adWrapperURL": "[uri(variables('baseUri'),'../../../ps-scripts/adWrapper.ps1')]",
 
         "subnetCIDRParts": "[split(parameters('vnetPrimarySubnetPrefix'), '/')]",
         "subnetIPParts": "[split(variables('subnetCIDRParts')[0], '.')]",
@@ -253,14 +247,11 @@
                 "autoUpgradeMinorVersion": false,
                 "settings": {
                     "fileUris": [
-                        "[variables('dcConfigScriptURL')]",
-                        "[variables('orgConfigScriptURL')]",
-                        "[variables('userConfigScriptURL')]",
-                        "[variables('adWrapperURL')]"
+                        "[variables('dcConfigScriptURL')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File adWrapper.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File configAD.ps1 \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\"')]"
                 }
             }
         },
@@ -475,14 +466,11 @@
                 "autoUpgradeMinorVersion": false,
                 "settings": {
                     "fileUris": [
-                        "[variables('configWinURL')]",
-                        "[variables('updateWinGroupURL')]",
-                        "[variables('joinWindowsScriptURL')]",
-                        "[variables('winWrapperURL')]"
+                        "[variables('winMassiveScriptURL')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File winWrapper.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File winMassiveScript.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', variables('adPDCVMName'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\"')]"
                 }
             }
         },
