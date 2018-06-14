@@ -27,12 +27,13 @@ param (
 $adPassSecure = $adPass | ConvertTo-SecureString -AsPlainText -Force
 $adCredential = New-Object System.Management.Automation.PSCredential -Argumentlist "$NetBiosName\$adUser", $adPassSecure
 $domainPath = $($domain.Split("{.}") | ForEach-Object {"DC=$_"}) -join ","
+$adCompDomain = "$adCompName.$domain"
 
 winrm quickconfig -q
-Set-Item WSMan:\localhost\Client\TrustedHosts -Value "$adCompName.$domain" -Force
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "$adCompDomain" -Force
 
 # Import Active Directory to Powershell
-$S = New-PSSession -ComputerName "$adCompName.$domain" -Credential $adCredential
+$S = New-PSSession -ComputerName "$adCompDomain" -Credential $adCredential
 Import-Module -PSsession $S -Name ActiveDirectory
 
 # Create Org in OU (createOrgOU.ps1)
