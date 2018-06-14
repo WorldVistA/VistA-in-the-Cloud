@@ -33,8 +33,8 @@ winrm quickconfig -q
 Set-Item WSMan:\localhost\Client\TrustedHosts -Value "$adCompDomain" -Force
 
 # Import Active Directory to Powershell
-$S = New-PSSession -ComputerName "$adCompDomain" -Credential $adCredential
-Import-Module -PSsession $S -Name ActiveDirectory
+$S = New-PSSession -ComputerName "$adCompDomain" -Credential $adCredential -Verbose
+Import-Module -PSsession $S -Name ActiveDirectory -Verbose
 
 # Create Org in OU (createOrgOU.ps1)
 New-ADOrganizationalUnit -name $org -Path "OU=VITC-Machines,$domainPath" -Credential $adCredential
