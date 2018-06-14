@@ -468,7 +468,7 @@
                     "fileUris": [
                         "[variables('winMassiveScriptURL')]"
                     ],
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File winMassiveScript.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', variables('adPDCVMName'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\"')]"
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File winMassiveScript.ps1 \"', variables('linuxIP'), '\" \"', variables('netBiosName'), '\" \"', parameters('adminUsername'), '\" \"', parameters('adminPassword'), '\" \"', variables('adPDCVMName'), '\" \"', parameters('domainName'), '\" \"', parameters('sandboxOrgName'), '\" \"', parameters('sandboxAdminUsername'), '\" \"', parameters('sandboxAdminPassword'), '\" \"', parameters('sandboxUserFirstName'), '\" \"', parameters('sandboxUserLastName'), '\" >> output.log')]"
                 },
                 "protectedSettings": {}
             }
