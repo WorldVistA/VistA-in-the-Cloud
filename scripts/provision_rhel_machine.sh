@@ -9,9 +9,10 @@ yum install -y docker-ce
 mkdir -p /mnt/resource/docker /etc/docker
 echo '{"data-root": "/mnt/resource/docker"}' > /etc/docker/daemon.json
 systemctl start docker
-cd /mnt/resource
+pushd /mnt/resource
 docker pull osehra/osehravista
 docker run -p 9430:9430 -p 8001:8001 -p9080:9080 -p2222:22 -p57772:57772 -d -P --name=cache osehra/osehravista
+popd
 
 # Uncomment and replace the git url's once Synthea is public
 # git clone <service git url> service
@@ -19,8 +20,9 @@ docker run -p 9430:9430 -p 8001:8001 -p9080:9080 -p2222:22 -p57772:57772 -d -P -
 
 # Download Synthea from Azure Storage; comment out/remove when Github links are available.
 # SAS Token valid till 7-15-18 and only works on 10.7.0.4 (default container)
-curl -0 https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T16:16:27Z&se=2018-07-16T00:16:27Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=HHW7bkAXi7gJenuY2xJNgc4DmccaYLjyhfPmW%2BlaJP8%3D&sr=b -o synthea-service.zip
-curl -0 https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T16:18:18Z&se=2018-07-16T00:18:18Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=cH%2BUTJeuqmT%2BlyHm5ywJVRDqoZWNo6tU6cmxtUtztbQ%3D&sr=b -o synthea-manager.zip
+curl -0 "https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T19:04:04Z&se=2018-07-16T03:04:04Z&spr=https&sv=2017-11-09&sig=502CJT7mEwgIAha9UlUoisspVv74ZThKMMUUN4O8%2F2Y%3D&sr=b" -o synthea-service.zip
+curl -0 "https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T19:10:18Z&se=2018-07-18T03:10:18Z&spr=https&sv=2017-11-09&sig=n4T7d4qLaqQPIW1YHxQJk6MGvmAdxyOuDrtee1reXdE%3D&sr=b" -o synthea-manager.zip
+curl -0 "https://syntheastorage.blob.core.windows.net/docker/synthea-docker.zip?sp=r&st=2018-06-15T19:14:25Z&se=2018-07-16T03:14:25Z&spr=https&sv=2017-11-09&sig=wcFCQmC1mjnuYYgvE6x%2FHi5QiRllQO0rObUCkj%2BdrD4%3D&sr=b" -o synthea-docker.zip
 unzip-strip() (
     local zip=$1
     local dest=${2:-.}
@@ -34,6 +36,7 @@ unzip-strip() (
 )
 unzip-strip synthea-service.zip service
 unzip-strip synthea-manager.zip manager
+unzip synthea-docker.zip
 
 # Setup Synthea
 if [[ ! -d ./manager ]]; then
@@ -48,13 +51,15 @@ fi
 
 if [[ !$local ]]; then
     mkdir -p /opt/synthea/dhp-synthea-service
-    mkdir -p /opt/synthea/manager
+    mkdir -p /opt/synthea/manager/static
     mkdir -p /opt/synthea/output/fhir
 fi
 
-cp -r ./service/ /opt/synthea/dhp-synthea-service/
-cp -r ./manager/ /opt/synthea/manager/
-cp -r ./manager/ /opt/synthea/manager/static
+cp -r ./service/* /opt/synthea/dhp-synthea-service/
+cp -r ./manager/* /opt/synthea/manager/
+cp ./manager/.* /opt/synthea/manager/
+cp -r ./manager/* /opt/synthea/manager/static
+cp ./manager/.* /opt/synthea/manager/static
 
 cp ./docker/service/Dockerfile /opt/synthea/
 pushd /opt/synthea/dhp-synthea-service
