@@ -1,41 +1,23 @@
 #!/bin/bash
-# set -x
+
+# Until Synthea is public you will need to extract the manager zip to ./manager and service zip to ./service
+# If you want to test locally add true as your second argument
 
 ip=$1
+local=$2
+if [[ -z $local ]]; then
+    local=false
+fi
 
-yum install -y yum-utils device-mapper-persistent-data lvm2 git
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum install -y docker-ce
-mkdir -p /mnt/resource/docker /etc/docker
-echo '{"data-root": "/mnt/resource/docker"}' > /etc/docker/daemon.json
-systemctl start docker
-cd /mnt/resource
-docker pull osehra/osehravista
-docker run -p 9430:9430 -p 8001:8001 -p9080:9080 -p2222:22 -p57772:57772 -d -P --name=cache osehra/osehravista
+if [[ -z $ip ]]; then
+    echo "You need to supply and IP (or localhost) as the first argument"
+    exit 1
+fi
 
 # Uncomment and replace the git url's once Synthea is public
 # git clone <service git url> service
 # git clone <manager git url> manager
 
-# Download Synthea from Azure Storage; comment out/remove when Github links are available.
-# SAS Token valid till 7-15-18 and only works on 10.7.0.4 (default container)
-curl -O https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T16:16:27Z&se=2018-07-16T00:16:27Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=HHW7bkAXi7gJenuY2xJNgc4DmccaYLjyhfPmW%2BlaJP8%3D&sr=b
-curl -O https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T16:18:18Z&se=2018-07-16T00:18:18Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=cH%2BUTJeuqmT%2BlyHm5ywJVRDqoZWNo6tU6cmxtUtztbQ%3D&sr=b
-unzip-strip() (
-    local zip=$1
-    local dest=${2:-.}
-    local temp=$(mktemp -d) && unzip -d "$temp" "$zip" && mkdir -p "$dest" &&
-    shopt -s dotglob && local f=("$temp"/*) &&
-    if (( ${#f[@]} == 1 )) && [[ -d "${f[0]}" ]] ; then
-        mv "$temp"/*/* "$dest"
-    else
-        mv "$temp"/* "$dest"
-    fi && rmdir "$temp"/* "$temp"
-)
-unzip-strip dxcdhp1-dhp-synthea-service-2d69de903461.zip service
-unzip-strip dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip manager
-
-# Setup Synthea
 if [[ ! -d ./manager ]]; then
     echo "Synthea Manager not found, please extract or git clone into ./manager"
     exit 1
