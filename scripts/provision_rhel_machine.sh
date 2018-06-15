@@ -18,11 +18,21 @@ popd
 # git clone <service git url> service
 # git clone <manager git url> manager
 
+# Create Docker files/folder
+mkdir -p ./docker/service
+mkdir -p ./docker/manager
+# Note, the /synthea/ needs to be replaced with /master/ once merged in
+pushd ./docker/service
+curl -O https://raw.githubusercontent.com/OSEHRA/VistA-in-the-Cloud/synthea/docker/service/Dockerfile
+popd
+pushd ./docker/manager
+curl -O https://raw.githubusercontent.com/OSEHRA/VistA-in-the-Cloud/synthea/docker/manager/Dockerfile
+popd
+
 # Download Synthea from Azure Storage; comment out/remove when Github links are available.
 # SAS Token valid till 7-15-18 and only works on 10.7.0.4 (default container)
 curl -0 "https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T19:04:04Z&se=2018-07-16T03:04:04Z&spr=https&sv=2017-11-09&sig=502CJT7mEwgIAha9UlUoisspVv74ZThKMMUUN4O8%2F2Y%3D&sr=b" -o synthea-service.zip
 curl -0 "https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T19:10:18Z&se=2018-07-18T03:10:18Z&spr=https&sv=2017-11-09&sig=n4T7d4qLaqQPIW1YHxQJk6MGvmAdxyOuDrtee1reXdE%3D&sr=b" -o synthea-manager.zip
-curl -0 "https://syntheastorage.blob.core.windows.net/docker/synthea-docker.zip?sp=r&st=2018-06-15T19:14:25Z&se=2018-07-16T03:14:25Z&spr=https&sv=2017-11-09&sig=wcFCQmC1mjnuYYgvE6x%2FHi5QiRllQO0rObUCkj%2BdrD4%3D&sr=b" -o synthea-docker.zip
 unzip-strip() (
     local zip=$1
     local dest=${2:-.}
