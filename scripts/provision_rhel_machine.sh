@@ -19,8 +19,8 @@ docker run -p 9430:9430 -p 8001:8001 -p9080:9080 -p2222:22 -p57772:57772 -d -P -
 
 # Download Synthea from Azure Storage; comment out/remove when Github links are available.
 # SAS Token valid till 7-15-18 and only works on 10.7.0.4 (default container)
-curl -O synthea-service.zip https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T16:16:27Z&se=2018-07-16T00:16:27Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=HHW7bkAXi7gJenuY2xJNgc4DmccaYLjyhfPmW%2BlaJP8%3D&sr=b
-curl -O synthea-manager.zip https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T16:18:18Z&se=2018-07-16T00:18:18Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=cH%2BUTJeuqmT%2BlyHm5ywJVRDqoZWNo6tU6cmxtUtztbQ%3D&sr=b
+curl -0 https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T16:16:27Z&se=2018-07-16T00:16:27Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=HHW7bkAXi7gJenuY2xJNgc4DmccaYLjyhfPmW%2BlaJP8%3D&sr=b -o synthea-service.zip
+curl -0 https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T16:18:18Z&se=2018-07-16T00:18:18Z&sip=10.7.0.4&spr=https&sv=2017-11-09&sig=cH%2BUTJeuqmT%2BlyHm5ywJVRDqoZWNo6tU6cmxtUtztbQ%3D&sr=b -o synthea-manager.zip
 unzip-strip() (
     local zip=$1
     local dest=${2:-.}
