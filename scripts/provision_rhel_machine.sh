@@ -15,8 +15,8 @@ docker run -p 9430:9430 -p 8001:8001 -p9080:9080 -p2222:22 -p57772:57772 -d -P -
 popd
 
 # Uncomment and replace the git url's once Synthea is public
-# git clone <service git url> service
-# git clone <manager git url> manager
+git clone https://github.com/OSEHRA/dhp-synthea-service.git service
+git clone https://github.com/OSEHRA/dhp-synthea-manager.git manager
 
 # Create Docker files/folder
 mkdir -p ./docker/service
@@ -31,8 +31,8 @@ popd
 
 # Download Synthea from Azure Storage; comment out/remove when Github links are available.
 # SAS Token valid till 7-15-18 and only works on 10.7.0.4 (default container)
-curl -0 "https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T19:04:04Z&se=2018-07-16T03:04:04Z&spr=https&sv=2017-11-09&sig=502CJT7mEwgIAha9UlUoisspVv74ZThKMMUUN4O8%2F2Y%3D&sr=b" -o synthea-service.zip
-curl -0 "https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T19:10:18Z&se=2018-07-18T03:10:18Z&spr=https&sv=2017-11-09&sig=n4T7d4qLaqQPIW1YHxQJk6MGvmAdxyOuDrtee1reXdE%3D&sr=b" -o synthea-manager.zip
+#curl -0 "https://syntheastorage.blob.core.windows.net/service/dxcdhp1-dhp-synthea-service-2d69de903461.zip?sp=r&st=2018-06-15T19:04:04Z&se=2018-07-16T03:04:04Z&spr=https&sv=2017-11-09&sig=502CJT7mEwgIAha9UlUoisspVv74ZThKMMUUN4O8%2F2Y%3D&sr=b" -o synthea-service.zip
+#curl -0 "https://syntheastorage.blob.core.windows.net/manager/dxcdhp1-dhp-synthea-manager-a2addcc45da7.zip?sp=r&st=2018-06-15T19:10:18Z&se=2018-07-18T03:10:18Z&spr=https&sv=2017-11-09&sig=n4T7d4qLaqQPIW1YHxQJk6MGvmAdxyOuDrtee1reXdE%3D&sr=b" -o synthea-manager.zip
 unzip-strip() (
     local zip=$1
     local dest=${2:-.}
@@ -44,9 +44,9 @@ unzip-strip() (
         mv "$temp"/* "$dest"
     fi && rmdir "$temp"/* "$temp"
 )
-unzip-strip synthea-service.zip service
-unzip-strip synthea-manager.zip manager
-unzip synthea-docker.zip
+#unzip-strip synthea-service.zip service
+#unzip-strip synthea-manager.zip manager
+#unzip synthea-docker.zip
 
 # Setup Synthea
 if [[ ! -d ./manager ]]; then
@@ -73,8 +73,8 @@ cp ./manager/.* /opt/synthea/manager/static
 
 cp ./docker/service/Dockerfile /opt/synthea/
 pushd /opt/synthea/dhp-synthea-service
-perl -pi -e "s/https:\/\/vista-synthetic-data-dev1.openplatform.healthcare\/addpatient/http:\/\/$ip:9080\/addpatient/" ./src/main/resources/application-dev.properties
-perl -pi -e "s/https:\/\/synthea-manager-dev1.openplatform.healthcare,http:\/\/localhost:8080/http:\/\/$ip:8020/" ./src/main/resources/application-dev.properties
+perl -pi -e "s/vista.url=/vista.url=http:\/\/$ip:9080\/addpatient/" ./src/main/resources/application-dev.properties
+perl -pi -e "s/http:\/\/localhost:8080/http:\/\/$ip:8020/" ./src/main/resources/application-dev.properties
 popd
 pushd /opt/synthea
 docker build -t synthea-service-builder .
@@ -87,7 +87,7 @@ popd
 cp ./docker/manager/Dockerfile /opt/synthea/
 pushd /opt/synthea/manager
 chmod +x build.sh compile.sh create-container.sh deploy.sh docker-env.sh
-perl -pi -e "s/https:\/\/synthea-service-dev1.openplatform.healthcare\//http:\/\/$ip:8021\//" ./config/devdeploy.env.js
+perl -pi -e "s/http:\/\/localhost:8021\//http:\/\/$ip:8021\//" ./config/devdeploy.env.js
 popd
 pushd /opt/synthea
 docker build -t synthea-manager-builder .
