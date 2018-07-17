@@ -218,7 +218,11 @@
           "uri": "[variables('linuxConfigTemplateURL')]",
           "contentVersion": "1.0.0.0"
         },
-        "parameters": {}
+        "parameters": {
+          "linuxIP": {
+            "value": "[variables('linuxIP')]"
+          }
+        }
       }
     }
   ],

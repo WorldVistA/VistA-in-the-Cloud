@@ -52,3 +52,5 @@ shortcut "C:\Program Files (x86)\VistA\VITALS\VitalsManager.exe" "$env:Public\De
 weblink "https://code.osehra.org/vivian/" $env:Public\Desktop\Vivian.url
 weblink "https://code.osehra.org/dox/" $env:Public\Desktop\Dox.url
 weblink "http://code.osehra.org/CDash/viewProjects.php" $env:Public\Desktop\CDash.url
+$syntheaURL = ('http://' + $serverAddress + ':8020')
+weblink $syntheaURL $env:Public\Desktop\Synthea.url

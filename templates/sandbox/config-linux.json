@@ -1,7 +1,11 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": {
+      "linuxIP": {
+        "type": "string"
+      }
+    },
     "variables": {
         "linuxVMName": "VITCLinuxSandbox",
         "baseUri": "[deployment().properties.templateLink.uri]",
@@ -28,7 +32,7 @@
                 ]
               },
               "protectedSettings": {
-                "commandToExecute": "./provision_rhel_machine.sh"
+                "commandToExecute": "[concat('./provision_rhel_machine.sh ', parameters('linuxIP'))]"
               }
             }
           }
