@@ -51,6 +51,7 @@ Once an account is established, logging in is included as a part of each of the 
 
 Required Fields:
   * `vnetName` Default: `VITC-Sandbox`
+# Note that the value of vnetName needs to be unique across Azure namespaces.  Please use a unique name for the vnetName; else, the system will not allow the deployment of the VMs.
   * `vnetCIDR` Default: `10.7.0.0/24`
     * If you are running more than 1 sandbox, or have a Virtual Network that includes 10.7.0.0/24, you will need to find a new CIDR to deploy the sandbox into.  If you only have additional sandboxes you can increment the third octet by 1, i.e. 10.7.1.0/24.
   * `adminUsername` Default: `VITCAdmin`

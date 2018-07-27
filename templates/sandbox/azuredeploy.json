@@ -4,7 +4,7 @@
   "parameters": {
     "vnetName": {
       "type": "string",
-      "defaultValue": "VITC-Sandbox"
+      "defaultValue": "OSEHRA-VITC-Sandbox"
     },
     "vnetCIDR": {
       "type": "string",
@@ -31,6 +31,7 @@
       "allowedValues": [
         "Standard_D1_v2",
         "Standard_D2_v2",
+	"Standard_D2s_v3",
         "Standard_D3_v2",
         "Standard_D4_v2",
         "Standard_D5_v2",
@@ -50,7 +51,7 @@
         "Standard_DS14_v2",
         "Standard_DS15_v2"
       ],
-      "defaultValue": "Standard_D3_v2"
+      "defaultValue": "Standard_DS2_v2"
     }
   },
   "variables": {
